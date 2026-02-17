@@ -1,0 +1,822 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Curated Restaurant Consulting - AI Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modern-glass.css' %}">
+  <style>
+    /* Enhanced Homepage Styles */
+    .welcome-section {
+      padding: var(--spacing-2xl) var(--spacing-xl);
+      text-align: center;
+      background: 
+        radial-gradient(ellipse 100% 70% at 50% -20%, rgba(102, 126, 234, 0.12) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(102, 126, 234, 0.06) 0%, transparent 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 30% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(240, 147, 251, 0.06) 0%, transparent 50%);
+      animation: rotate-slow 50s linear infinite;
+    }
+    
+    @keyframes rotate-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes title-reveal {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+        filter: blur(10px);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+        filter: blur(0);
+      }
+    }
+    
+    @keyframes subtitle-reveal {
+      from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
+    }
+
+    .welcome-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+      animation: title-reveal 0.8s ease-out, gradient-shift 8s ease infinite;
+      letter-spacing: -0.02em;
+    }
+    
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .welcome-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-2xl);
+      line-height: 1.8;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      z-index: 1;
+      animation: subtitle-reveal 0.8s ease-out 0.2s backwards;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+      position: relative;
+      z-index: 1;
+    }
+
+    .service-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      animation: card-reveal 0.6s ease-out backwards;
+    }
+    
+    .service-card:nth-child(1) { animation-delay: 0.1s; }
+    .service-card:nth-child(2) { animation-delay: 0.15s; }
+    .service-card:nth-child(3) { animation-delay: 0.2s; }
+    .service-card:nth-child(4) { animation-delay: 0.25s; }
+    .service-card:nth-child(5) { animation-delay: 0.3s; }
+    .service-card:nth-child(6) { animation-delay: 0.35s; }
+    
+    @keyframes card-reveal {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px) scale(0.95); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+      transform: translateX(-100%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .service-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .service-card:hover::before {
+      transform: translateX(0);
+    }
+
+    .service-card:hover::after {
+      opacity: 1;
+    }
+
+    .service-card:hover {
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 
+        0 30px 60px rgba(102, 126, 234, 0.25),
+        0 0 0 1px rgba(102, 126, 234, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .service-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--spacing-md);
+      box-shadow: 
+        0 12px 35px rgba(102, 126, 234, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .service-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .service-card:hover .service-icon {
+      transform: scale(1.18) rotate(6deg);
+      box-shadow: 
+        0 18px 45px rgba(102, 126, 234, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    
+    .service-card:hover .service-icon::before {
+      opacity: 1;
+    }
+
+    .service-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+      position: relative;
+      z-index: 1;
+      transition: color 0.3s;
+    }
+    
+    .service-card:hover .service-title {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .service-desc {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Chat Input Enhancement */
+    .chat-input-section {
+      padding: var(--spacing-xl) var(--spacing-2xl);
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% 100%, rgba(102, 126, 234, 0.06) 0%, transparent 60%),
+        linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
+    }
+
+    .input-container {
+      display: flex;
+      gap: var(--spacing-sm);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
+      border: 2px solid rgba(102, 126, 234, 0.15);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-sm);
+      box-shadow: 
+        0 8px 30px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .input-container:focus-within {
+      border-color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 
+        0 15px 40px rgba(102, 126, 234, 0.18),
+        0 0 0 4px rgba(102, 126, 234, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .chat-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 0.875rem 1rem;
+      font-size: 1rem;
+      background: transparent;
+      color: var(--text-primary);
+      resize: none;
+      font-family: inherit;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+      transition: color 0.3s;
+    }
+    
+    .input-container:focus-within .chat-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .send-button {
+      padding: 0.875rem 1.5rem !important;
+      border-radius: var(--radius-lg) !important;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .send-button:hover {
+      transform: scale(1.05);
+    }
+
+    /* Quick Actions Enhancement */
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-lg);
+      justify-content: center;
+    }
+
+    .quick-action {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.92) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      padding: 0.7rem 1.4rem;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .quick-action::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--primary-gradient);
+      opacity: 0;
+      transition: opacity var(--transition-normal);
+    }
+
+    .quick-action:hover {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      color: white;
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 
+        0 12px 30px rgba(102, 126, 234, 0.4),
+        0 4px 12px rgba(118, 75, 162, 0.2);
+    }
+
+    /* Stats Row Enhancement */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-md);
+      padding: var(--spacing-xl) var(--spacing-2xl);
+      background: 
+        linear-gradient(135deg, rgba(102, 126, 234, 0.06) 0%, rgba(118, 75, 162, 0.04) 50%, rgba(240, 147, 251, 0.03) 100%);
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+      position: relative;
+    }
+    
+    .stats-row::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: var(--spacing-md);
+      position: relative;
+      transition: transform 0.3s ease;
+    }
+    
+    .stat-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .stat-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 50%;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+    }
+
+    .stat-number {
+      font-size: 2.25rem;
+      font-weight: 800;
+      background: var(--primary-gradient);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.25rem;
+      animation: gradient-shift 6s ease infinite;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* Chat Messages Enhancement */
+    .chat-messages-container {
+      display: none;
+      padding: var(--spacing-xl) var(--spacing-2xl);
+      background: 
+        linear-gradient(180deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.98) 100%);
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+      position: relative;
+    }
+    
+    .chat-messages-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.15), transparent);
+    }
+
+    .chat-messages-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .chat-messages-header h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .chat-messages {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: var(--spacing-sm);
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #667eea, #764ba2);
+      border-radius: 3px;
+    }
+    
+    /* Loading animation */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    .loading-shimmer {
+      background: linear-gradient(90deg, 
+        rgba(102, 126, 234, 0.05) 25%, 
+        rgba(102, 126, 234, 0.15) 50%, 
+        rgba(102, 126, 234, 0.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @media (max-width: 768px) {
+      .welcome-title {
+        font-size: 2rem;
+      }
+      
+      .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .stat-item:nth-child(2)::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .stat-item::after {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  <div class="floating-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header">
+    <div class="header-content">
+      <div class="logo" aria-label="Curated Restaurant Consulting">
+        <div class="logo-circle" aria-hidden="true">C</div>
+        <div class="brand-text">
+          <div class="company-name">Curated Restaurant Consulting</div>
+          <div class="company-tagline">Driven by Data. Crafted for Excellence.</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="ai-badge" aria-live="polite">AI Assistant Active</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <div class="glass-interface" role="application" aria-label="AI Assistant chat">
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <h1 class="welcome-title">Your AI Restaurant Consultant</h1>
+        <p class="welcome-subtitle">Get instant expert insights on KPIs, operations, and strategy. I analyze your data and provide actionable recommendations tailored to your restaurant.</p>
+
+        <!-- Service Cards -->
+        <div class="services-grid" role="list">
+          <!-- KPI Analysis -->
+          <button class="service-card" role="listitem" aria-label="KPI Analysis" onclick="goToKPIAnalysis()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="4" y="28" width="4" height="8" rx="2" fill="white"/>
+                <rect x="10" y="22" width="4" height="14" rx="2" fill="white"/>
+                <rect x="16" y="18" width="4" height="18" rx="2" fill="white"/>
+                <rect x="22" y="12" width="4" height="24" rx="2" fill="white"/>
+                <rect x="28" y="8" width="4" height="28" rx="2" fill="white"/>
+                <path d="M6 16L12 10L18 14L26 6L32 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="service-title">KPI Analysis</div>
+            <div class="service-desc">Real-time performance metrics &amp; benchmarking</div>
+          </button>
+
+          <!-- HR Solutions -->
+          <button class="service-card" role="listitem" aria-label="HR Solutions" onclick="goToHRSolutions()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="14" cy="12" r="4" stroke="white" stroke-width="2"/>
+                <circle cx="26" cy="12" r="4" stroke="white" stroke-width="2"/>
+                <path d="M8 32V30C8 26.6863 10.6863 24 14 24C17.3137 24 20 26.6863 20 30V32" stroke="white" stroke-width="2"/>
+                <path d="M20 32V30C20 26.6863 22.6863 24 26 24C29.3137 24 32 26.6863 32 30V32" stroke="white" stroke-width="2"/>
+                <circle cx="20" cy="8" r="2" fill="white"/>
+              </svg>
+            </div>
+            <div class="service-title">HR Solutions</div>
+            <div class="service-desc">Staff optimization &amp; retention strategies</div>
+          </button>
+
+          <!-- Beverage -->
+          <button class="service-card" role="listitem" aria-label="Beverage" onclick="goToBeverage()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <path d="M20 4C18.5 4 17 5 17 7V10H23V7C23 5 21.5 4 20 4Z" stroke="white" stroke-width="2" fill="none"/>
+                <rect x="12" y="10" width="16" height="22" rx="3" stroke="white" stroke-width="2" fill="none"/>
+                <circle cx="20" cy="16" r="2" fill="white"/>
+                <path d="M16 22H24" stroke="white" stroke-width="2"/>
+                <path d="M16 26H24" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="service-title">Beverage</div>
+            <div class="service-desc">Bar management &amp; liquor cost analysis</div>
+          </button>
+
+          <!-- Menu Engineering -->
+          <button class="service-card" role="listitem" aria-label="Menu Engineering" onclick="goToMenuEngineering()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="6" y="8" width="28" height="24" rx="3" stroke="white" stroke-width="2"/>
+                <path d="M6 16H34" stroke="white" stroke-width="2"/>
+                <circle cx="13" cy="12" r="1.5" fill="white"/>
+                <circle cx="20" cy="12" r="1.5" fill="white"/>
+                <circle cx="27" cy="12" r="1.5" fill="white"/>
+                <rect x="10" y="20" width="8" height="2" rx="1" fill="white"/>
+                <rect x="10" y="24" width="12" height="2" rx="1" fill="white"/>
+              </svg>
+            </div>
+            <div class="service-title">Menu Engineering</div>
+            <div class="service-desc">Profitability analysis &amp; pricing optimization</div>
+          </button>
+
+          <!-- Recipes -->
+          <button class="service-card" role="listitem" aria-label="Recipes" onclick="goToRecipes()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="8" y="6" width="24" height="28" rx="2" stroke="white" stroke-width="2" fill="none"/>
+                <path d="M12 12H28" stroke="white" stroke-width="2"/>
+                <path d="M12 16H24" stroke="white" stroke-width="2"/>
+                <path d="M12 20H26" stroke="white" stroke-width="2"/>
+                <path d="M12 24H22" stroke="white" stroke-width="2"/>
+                <path d="M12 28H20" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="service-title">Recipes</div>
+            <div class="service-desc">Recipe costing &amp; ingredient optimization</div>
+          </button>
+
+          <!-- Strategic Planning -->
+          <button class="service-card" role="listitem" aria-label="Strategic Planning" onclick="goToStrategicPlanning()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="20" cy="20" r="16" stroke="white" stroke-width="2"/>
+                <circle cx="20" cy="20" r="10" stroke="white" stroke-width="2"/>
+                <circle cx="20" cy="20" r="4" stroke="white" stroke-width="2"/>
+                <path d="M20 4V8" stroke="white" stroke-width="2"/>
+                <path d="M36 20H32" stroke="white" stroke-width="2"/>
+                <path d="M20 36V32" stroke="white" stroke-width="2"/>
+                <path d="M4 20H8" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="service-title">Strategic Planning</div>
+            <div class="service-desc">Growth strategies &amp; operational excellence</div>
+          </button>
+
+          <!-- KPI Dashboard -->
+          <button class="service-card" role="listitem" aria-label="KPI Dashboard" onclick="goToKPIDashboard()">
+            <div class="service-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="4" y="8" width="32" height="24" rx="3" stroke="white" stroke-width="2"/>
+                <rect x="8" y="12" width="4" height="16" rx="1" fill="white"/>
+                <rect x="14" y="16" width="4" height="12" rx="1" fill="white"/>
+                <rect x="20" y="10" width="4" height="18" rx="1" fill="white"/>
+                <rect x="26" y="14" width="4" height="14" rx="1" fill="white"/>
+              </svg>
+            </div>
+            <div class="service-title">KPI Dashboard</div>
+            <div class="service-desc">Upload CSV for comprehensive performance analysis</div>
+          </button>
+        </div>
+      </section>
+
+      <!-- Chat Input Section -->
+      <section class="chat-input-section" aria-label="Message composer">
+        <div class="input-container">
+          <label for="chat-input" class="visually-hidden">Type your message</label>
+          <textarea id="chat-input" class="chat-input" placeholder="Ask me anything about your restaurant operations, KPIs, staffing, menu optimization, or business strategy..." rows="1"></textarea>
+          <button class="send-button glass-btn-primary" id="send-button" type="button" aria-label="Send message">
+            <span>Send</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="quick-actions" aria-label="Quick actions">
+          <button class="quick-action" type="button">Calculate my labor cost %</button>
+          <button class="quick-action" type="button">Analyze food costs</button>
+          <button class="quick-action" type="button">Review prime costs</button>
+          <button class="quick-action" type="button">Staff scheduling tips</button>
+          <button class="quick-action" type="button">Menu profitability</button>
+          <button class="quick-action" type="button">Sales forecasting</button>
+          <button class="quick-action" type="button">Inventory optimization</button>
+          <button class="quick-action" type="button">Financial health check</button>
+        </div>
+      </section>
+
+      <!-- Stats Row -->
+      <section class="stats-row" aria-label="Service stats">
+        <div class="stat-item">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Availability</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">&lt; 3s</div>
+          <div class="stat-label">Response Time</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">500+</div>
+          <div class="stat-label">KPIs Tracked</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">98%</div>
+          <div class="stat-label">Accuracy Rate</div>
+        </div>
+      </section>
+
+      <!-- Chat Messages Area -->
+      <section class="chat-messages-container" id="chat-messages" aria-label="Conversation">
+        <div class="chat-messages-header">
+          <h3 id="chat-title">AI Assistant Conversation</h3>
+          <button class="clear-chat" id="clear-chat" type="button" aria-label="Clear chat history">Clear Chat</button>
+        </div>
+        <div class="chat-messages" id="messages" aria-live="polite" aria-labelledby="chat-title">
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const qs = (sel, root=document) => root.querySelector(sel);
+      const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
+      }
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      function safeTextToNode(text) {
+        const div = document.createElement('div');
+        const safe = document.createTextNode(text);
+        div.appendChild(safe);
+        return div.innerHTML.replace(/\n/g, '<br>');
+      }
+
+      const textarea = qs('#chat-input');
+      const sendButton = qs('#send-button');
+      const clearButton = qs('#clear-chat');
+      const messagesContainer = qs('#messages');
+      const chatContainer = qs('#chat-messages');
+
+      if (textarea) {
+        textarea.addEventListener('input', function () {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+      }
+
+      qsa('.quick-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+          textarea.value = btn.textContent.trim();
+          textarea.focus();
+          textarea.dispatchEvent(new Event('input'));
+        });
+      });
+
+      function addMessage(content, isUser = false) {
+        if (!chatContainer || !messagesContainer) return;
+        chatContainer.style.display = 'block';
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = safeTextToNode(content);
+        const time = document.createElement('div');
+        time.className = 'message-time';
+        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(time);
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function clearChat() {
+        messagesContainer.innerHTML = '';
+        chatContainer.style.display = 'none';
+        textarea.value = '';
+        textarea.style.height = 'auto';
+        textarea.focus();
+      }
+
+      if (clearButton) clearButton.addEventListener('click', clearChat);
+
+      async function sendMessage() {
+        const message = textarea.value.trim();
+        if (!message) return;
+        window.location.href = `/dashboard/chat/?message=${encodeURIComponent(message)}`;
+      }
+
+      if (sendButton) {
+        sendButton.addEventListener('click', () => {
+          sendButton.style.transform = 'scale(0.95)';
+          setTimeout(() => { sendButton.style.transform = ''; sendMessage(); }, 120);
+        });
+      }
+
+      if (textarea) {
+        textarea.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+      }
+
+      window.goToKPIAnalysis = () => window.location.href = '/dashboard/kpi-analysis/';
+      window.goToHRSolutions = () => window.location.href = '/dashboard/hr-solutions/';
+      window.goToBeverage = () => window.location.href = '/dashboard/beverage/';
+      window.goToMenuEngineering = () => window.location.href = '/dashboard/menu-engineering/';
+      window.goToRecipes = () => window.location.href = '/dashboard/recipes/';
+      window.goToStrategicPlanning = () => window.location.href = '/dashboard/strategic-planning/';
+      window.goToKPIDashboard = () => window.location.href = '/dashboard/kpi-dashboard/';
+    });
+  </script>
+</body>
+</html>

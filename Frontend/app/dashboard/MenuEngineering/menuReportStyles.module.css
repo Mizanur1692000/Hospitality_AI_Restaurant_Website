@@ -1,0 +1,93 @@
+.menuHtml :global(.report) {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 250, 252, 0.95) 100%
+  ) !important;
+  border: 1px solid rgba(102, 126, 234, 0.12) !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.menuHtml :global(.report .report__header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)
+    !important;
+  color: #fff !important;
+  padding: 20px !important;
+  text-align: center !important;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.menuHtml :global(.report .report__meta) {
+  opacity: 0.95;
+  font-size: 0.875rem;
+  margin-top: 6px;
+}
+
+.menuHtml :global(.report .report__body) {
+  color: #374151 !important;
+  padding: 20px !important;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.5) 0%,
+    transparent 100%
+  );
+}
+
+.menuHtml :global(.badge) {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.menuHtml :global(.badge--excellent) {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff;
+}
+
+.menuHtml :global(.badge--good) {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  color: #fff;
+}
+
+.menuHtml :global(.badge--acceptable) {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  color: #fff;
+}
+
+.menuHtml :global(.badge--needs-improvement) {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: #fff;
+}
+
+.menuHtml :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.menuHtml :global(th),
+.menuHtml :global(td) {
+  vertical-align: middle;
+}
+
+.menuHtml :global(ul),
+.menuHtml :global(ol) {
+  padding-left: 1.25rem;
+}
+
+.menuHtml :global(pre) {
+  white-space: pre-wrap;
+}

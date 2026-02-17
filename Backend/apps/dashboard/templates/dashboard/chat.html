@@ -1,0 +1,775 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Chat - Curated Restaurant Consulting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modern-glass.css' %}">
+  <style>
+    /* Enhanced Chat Interface Styles */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 950px;
+      width: 100%;
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-2xl);
+      box-shadow: 
+        0 25px 60px -12px rgba(102, 126, 234, 0.15),
+        0 0 0 1px rgba(102, 126, 234, 0.08);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      overflow: hidden;
+      height: calc(100vh - 160px);
+      animation: slide-up 0.6s ease-out;
+      position: relative;
+    }
+    .chat-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+      background-size: 300% 100%;
+      animation: gradientFlow 4s ease infinite;
+    }
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-2xl);
+      max-height: none;
+      background: linear-gradient(180deg, transparent 0%, rgba(248, 250, 252, 0.5) 100%);
+    }
+    .messages-area::-webkit-scrollbar {
+      width: 6px;
+    }
+    .messages-area::-webkit-scrollbar-track {
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 3px;
+    }
+    .messages-area::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #667eea, #764ba2);
+      border-radius: 3px;
+    }
+    
+    .message {
+      margin-bottom: var(--spacing-lg);
+      animation: messageSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .message.user .message-bubble {
+      background: var(--primary-gradient);
+      color: white;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+      border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm) var(--radius-xl);
+      margin-left: auto;
+      max-width: 75%;
+    }
+    
+    .message.assistant .message-bubble {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-sm);
+      max-width: 80%;
+    }
+    
+    .message-bubble {
+      padding: var(--spacing-lg) var(--spacing-xl);
+      line-height: 1.6;
+    }
+    
+    .message-bubble ul {
+      margin: var(--spacing-md) 0;
+      padding-left: var(--spacing-lg);
+    }
+    
+    .message-bubble li {
+      margin: var(--spacing-xs) 0;
+      position: relative;
+    }
+    
+    .message-time {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: var(--spacing-xs);
+      padding: 0 var(--spacing-md);
+    }
+    
+    .input-section {
+      padding: var(--spacing-xl) var(--spacing-2xl);
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.98) 100%);
+    }
+    
+    .input-container {
+      display: flex;
+      gap: var(--spacing-sm);
+      background: white;
+      border: 2px solid rgba(102, 126, 234, 0.15);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-sm);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .input-container:focus-within {
+      border-color: #667eea;
+      box-shadow: 
+        0 8px 30px rgba(102, 126, 234, 0.12),
+        0 0 0 4px rgba(102, 126, 234, 0.08);
+    }
+    
+    .chat-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 0.875rem 1rem;
+      font-size: 1rem;
+      background: transparent;
+      color: var(--text-primary);
+      resize: none;
+      font-family: inherit;
+    }
+    
+    .chat-input::placeholder {
+      color: var(--text-tertiary);
+    }
+    
+    .send-button {
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      padding: 0.875rem 1.5rem;
+      border-radius: var(--radius-lg);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .send-button:active {
+      transform: translateY(0);
+    }
+    
+    .upload-button {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      color: #667eea;
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-button:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+      transform: scale(1.05);
+    }
+    
+    .analysis-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .analysis-table th {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 1rem 0.875rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .analysis-table td {
+      padding: 0.875rem;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.08);
+      font-size: 0.9rem;
+    }
+    .analysis-table tr:last-child td { border-bottom: none; }
+    .analysis-table tr:hover { background: rgba(102, 126, 234, 0.03); }
+    .rank-cell { 
+      font-weight: 700; 
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center; 
+      width: 50px; 
+    }
+    .item-name { font-weight: 600; color: #1f2937; }
+    .profit-positive { color: #059669; font-weight: 600; }
+    .profit-negative { color: #dc2626; font-weight: 600; }
+    
+    /* Chat Header Styling */
+    .chat-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .ai-badge {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+      color: #059669;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .ai-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+    
+    /* Report Styles for business_report_html */
+    .report {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+    .report__header {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+    }
+    .report__header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      flex: 1;
+    }
+    .report__meta {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+    .badge {
+      padding: 0.35rem 0.8rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge--excellent { background: rgba(16, 185, 129, 0.2); color: #065f46; }
+    .badge--good { background: rgba(59, 130, 246, 0.2); color: #1e40af; }
+    .badge--acceptable { background: rgba(251, 191, 36, 0.2); color: #92400e; }
+    .badge--needs-improvement { background: rgba(239, 68, 68, 0.2); color: #991b1b; }
+    .report__body {
+      padding: 1.5rem;
+    }
+    .report__body .lead {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    .report__body h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.25rem 0 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .report__body h3::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: var(--primary-gradient);
+      border-radius: 2px;
+    }
+    .report__body ul, .report__body ol {
+      margin: 0.5rem 0;
+      padding-left: 1.25rem;
+    }
+    .report__body li {
+      margin: 0.4rem 0;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  <div class="floating-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header">
+    <div class="header-content">
+      <a href="/dashboard/" class="back-button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Back to Dashboard
+      </a>
+      <h1 class="chat-title text-gradient">AI Chat Assistant</h1>
+      <div class="ai-badge">AI Assistant Active</div>
+    </div>
+  </header>
+
+  <!-- Chat Container -->
+  <main class="main-container">
+    <div class="chat-container">
+      <!-- Messages Area -->
+      <div class="messages-area" id="messages-area">
+        <div class="message assistant">
+          <div class="message-bubble">
+            <strong>Welcome!</strong> I'm your AI restaurant consultant. I can help you with:
+            <ul>
+              <li>KPI analysis and performance tracking</li>
+              <li>Labor and food cost optimization</li>
+              <li>Menu engineering and pricing strategies</li>
+              <li>HR solutions and staff retention</li>
+              <li>Beverage management and liquor costs</li>
+            </ul>
+            How can I assist you today?
+          </div>
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+
+      <!-- Input Section -->
+      <div class="input-section">
+        <div class="input-container">
+          <textarea id="chat-input" class="chat-input" placeholder="Type your message here..." rows="1"></textarea>
+          <input type="file" id="file-input" accept=".csv" class="file-input"/>
+          <button id="upload-button" class="upload-button" title="Upload CSV for analysis">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+            </svg>
+          </button>
+          <button id="send-button" class="send-button">
+            <span>Send</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const messagesArea = document.getElementById('messages-area');
+      const chatInput = document.getElementById('chat-input');
+      const sendButton = document.getElementById('send-button');
+      const fileInput = document.getElementById('file-input');
+      const uploadButton = document.getElementById('upload-button');
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
+      }
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      // Check for initial message from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialMessage = urlParams.get('message');
+      if (initialMessage) {
+        setTimeout(() => {
+          chatInput.value = initialMessage;
+          sendMessage();
+        }, 500);
+      }
+
+      chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      sendButton.addEventListener('click', sendMessage);
+      uploadButton.addEventListener('click', () => fileInput.click());
+
+      function normalizeHeader(header) {
+        return header.toLowerCase().trim().replace(/\s+/g, '_');
+      }
+
+      function splitHeaderLine(line) {
+        if (!line) return [];
+        if (line.includes('\t')) return line.split('\t');
+        if (line.includes(';')) return line.split(';');
+        return line.split(',');
+      }
+
+      function hasAll(headers, required) {
+        return required.every(key => headers.includes(key));
+      }
+
+      function hasAny(headers, variants) {
+        return variants.some(v => headers.some(h => h === v || h.includes(v)));
+      }
+
+      function detectCsvTask(headers) {
+        // Beverage
+        if (hasAll(headers, ['expected_oz', 'actual_oz']) && hasAny(headers, ['liquor_cost', 'beverage_cost', 'bar_cost']) && hasAny(headers, ['total_sales', 'sales', 'revenue'])) {
+          return 'liquor_cost_analysis';
+        }
+        if (hasAll(headers, ['current_stock', 'reorder_point', 'monthly_usage', 'inventory_value'])) {
+          return 'bar_inventory_analysis';
+        }
+        if (hasAll(headers, ['drink_price', 'cost_per_drink', 'sales_volume', 'competitor_price'])) {
+          return 'beverage_pricing_analysis';
+        }
+
+        // Strategic planning
+        const hasBusinessGoals = hasAll(headers, ['revenue_target', 'budget_total']);
+        if (hasBusinessGoals) {
+          return 'business_goals';
+        }
+        if (hasAny(headers, ['market_size', 'market_share', 'competition_level', 'investment_budget', 'growth_potential', 'market_penetration', 'target_roi', 'roi_target'])) {
+          return 'growth_strategy';
+        }
+        if (hasAny(headers, ['efficiency_score', 'process_time', 'quality_rating', 'customer_satisfaction', 'cost_per_unit', 'waste_percentage', 'productivity_score', 'industry_benchmark'])) {
+          return 'operational_excellence';
+        }
+        if (hasAny(headers, ['historical_sales', 'current_sales', 'growth_rate', 'seasonal_factor', 'forecast_periods', 'forecast_period'])) {
+          return 'sales_forecasting';
+        }
+
+        // Menu pricing
+        if (hasAll(headers, ['item_name', 'item_price', 'item_cost', 'competitor_price'])) {
+          return 'pricing';
+        }
+
+        // Item optimization (prefer when optimization-specific fields exist)
+        const hasItemName = hasAny(headers, ['item_name', 'menu_item', 'product_name', 'product name', 'item']);
+        const hasQty = hasAny(headers, ['quantity_sold', 'quantity', 'units_sold', 'units sold']);
+        const hasOptSpecific = hasAny(headers, ['portion_size', 'portion_cost', 'waste_percent', 'waste', 'description']);
+        if (hasItemName && hasQty && hasOptSpecific) {
+          return 'optimization';
+        }
+
+        // Menu engineering (product mix)
+        const hasPrice = hasAny(headers, ['price', 'unit_price', 'unit price', 'item_price']);
+        if (hasItemName && hasQty && hasPrice) {
+          return 'product_mix';
+        }
+
+        // Recipe management
+        if (hasAny(headers, ['recipe_name', 'recipe', 'menu_item', 'dish']) && hasAny(headers, ['ingredient_cost', 'portion_cost', 'recipe_price'])) {
+          return 'recipe_management';
+        }
+
+        // KPI analysis
+        if (hasAny(headers, ['date']) && hasAny(headers, ['sales', 'revenue', 'total_sales', 'daily_sales']) && hasAny(headers, ['labor_cost', 'labor', 'wages', 'payroll']) && hasAny(headers, ['food_cost', 'cogs', 'cost_of_goods', 'food']) && hasAny(headers, ['labor_hours', 'hours', 'hours_worked', 'staff_hours', 'labor_hour'])) {
+          return 'kpi_analysis';
+        }
+
+        // HR analysis
+        if (hasAny(headers, ['turnover_rate', 'turnover', 'attrition_rate'])) {
+          return 'hr_retention';
+        }
+        if (hasAny(headers, ['total_sales', 'sales', 'revenue']) && hasAny(headers, ['labor_hours', 'hours_worked', 'hours']) && hasAny(headers, ['hourly_rate', 'pay_rate', 'avg_hourly_rate'])) {
+          return 'hr_scheduling';
+        }
+        if (hasAny(headers, ['customer_satisfaction', 'csat', 'sales_performance', 'efficiency_score', 'attendance_rate'])) {
+          return 'hr_performance';
+        }
+
+        return 'product_mix';
+      }
+
+      function labelForTask(task) {
+        const labels = {
+          liquor_cost_analysis: 'Liquor Cost Analysis',
+          bar_inventory_analysis: 'Bar Inventory Analysis',
+          beverage_pricing_analysis: 'Beverage Pricing Analysis',
+          business_goals: 'Business Goals',
+          sales_forecasting: 'Sales Forecasting',
+          growth_strategy: 'Growth Strategy',
+          operational_excellence: 'Operational Excellence',
+          pricing: 'Menu Pricing Strategy',
+          optimization: 'Item Optimization',
+          recipe_management: 'Recipe Management',
+          kpi_analysis: 'KPI Analysis',
+          hr_retention: 'HR Retention',
+          hr_scheduling: 'HR Scheduling',
+          hr_performance: 'HR Performance',
+          product_mix: 'Product Mix'
+        };
+        return labels[task] || task;
+      }
+
+      fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        addMessage(`📁 Uploading: ${file.name}`, true);
+        showTypingIndicator();
+        
+        let detectedTask = 'product_mix';
+        try {
+          const headerText = await file.slice(0, 2048).text();
+          const firstLine = (headerText.split(/\r?\n/)[0] || '').trim();
+          const headers = splitHeaderLine(firstLine).map(normalizeHeader).filter(Boolean);
+          if (headers.length) {
+            detectedTask = detectCsvTask(headers);
+          }
+        } catch (err) {
+          // Fall back to default product mix if header detection fails
+          detectedTask = 'product_mix';
+        }
+
+        if (detectedTask && detectedTask !== 'product_mix') {
+          addMessage(`🔎 Detected CSV type: ${labelForTask(detectedTask)}`, true);
+        }
+
+        const formData = new FormData();
+        formData.append('task', detectedTask);
+        formData.append('file', file);
+
+        try {
+          const response = await fetch('/api/agent/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            body: formData
+          });
+          const data = await response.json();
+          removeTypingIndicator();
+          
+          if (data.error) {
+            addMessage(`❌ Error: ${data.error}`, false);
+          } else {
+            addMessage(formatAnalysisResponse(data), false);
+          }
+        } catch (error) {
+          removeTypingIndicator();
+          addMessage(`❌ Error uploading file: ${error.message}`, false);
+        }
+
+        
+        fileInput.value = '';
+      });
+
+      async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        showTypingIndicator();
+
+        try {
+          const response = await fetch('/chat/api/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': CSRF_TOKEN
+            },
+            body: `message=${encodeURIComponent(message)}`
+          });
+          const data = await response.json();
+          removeTypingIndicator();
+          
+          if (data.error) {
+            addMessage(`❌ Error: ${data.error}`, false);
+          } else {
+            addMessage(formatResponse(data.response || 'No response received'), false);
+          }
+        } catch (error) {
+          removeTypingIndicator();
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+      }
+
+      function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = content;
+        
+        const time = document.createElement('div');
+        time.className = 'message-time';
+        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(time);
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        const indicator = document.createElement('div');
+        indicator.id = 'typing-indicator';
+        indicator.className = 'message assistant';
+        indicator.innerHTML = `
+          <div class="message-bubble">
+            <div class="loading-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        `;
+        messagesArea.appendChild(indicator);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }
+
+      function removeTypingIndicator() {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+      }
+
+      function formatResponse(text) {
+        if (!text) return '';
+        // Convert markdown-like formatting
+        return text
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>')
+          .replace(/^- /gm, '• ');
+      }
+
+      function formatAnalysisResponse(data) {
+        // First check if we have business_report_html - use it directly
+        if (data.business_report_html) {
+          return data.business_report_html;
+        }
+
+        if (data.business_report) {
+          const safeText = String(data.business_report)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\n/g, '<br>');
+          return `<div class="report"><div class="report__body">${safeText}</div></div>`;
+        }
+        
+        if (data.items && Array.isArray(data.items)) {
+          let html = '<strong>📊 Product Mix Analysis</strong><br><br>';
+          html += '<table class="analysis-table"><thead><tr>';
+          html += '<th>#</th><th>Item</th><th>Qty</th><th>Revenue</th><th>Cost</th><th>Profit</th>';
+          html += '</tr></thead><tbody>';
+          
+          data.items.forEach((item, i) => {
+            const profit = (item.revenue || 0) - (item.cost || 0);
+            const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+            html += `<tr>
+              <td class="rank-cell">${i + 1}</td>
+              <td class="item-name">${item.name || 'N/A'}</td>
+              <td>${item.quantity || 0}</td>
+              <td>$${(item.revenue || 0).toFixed(2)}</td>
+              <td>$${(item.cost || 0).toFixed(2)}</td>
+              <td class="${profitClass}">$${profit.toFixed(2)}</td>
+            </tr>`;
+          });
+          
+          html += '</tbody></table>';
+          return html;
+        }
+        
+        // Build a formatted report from available data
+        if (data.pmix_report || data.status === 'success') {
+          let html = '<div class="report"><div class="report__header">';
+          html += '<h2>Menu Engineering Analysis</h2>';
+          html += `<div class="report__meta">Generated: ${new Date().toLocaleString()}</div>`;
+          if (data.performance_rating) {
+            const badgeClass = data.performance_rating.toLowerCase().replace(' ', '-');
+            html += `<div class="badge badge--${badgeClass}">${data.performance_rating}</div>`;
+          }
+          html += '</div><div class="report__body">';
+          
+          // Metrics
+          if (data.metrics) {
+            html += '<h3>Key Metrics</h3><ul>';
+            for (const [key, value] of Object.entries(data.metrics)) {
+              if (typeof value === 'number') {
+                const formatted = key.toLowerCase().includes('percent') ? `${value.toFixed(1)}%` : 
+                                  key.toLowerCase().includes('revenue') || key.toLowerCase().includes('profit') || key.toLowerCase().includes('cost') ? `$${value.toLocaleString()}` : 
+                                  value.toLocaleString();
+                html += `<li>${key}: ${formatted}</li>`;
+              } else {
+                html += `<li>${key}: ${value}</li>`;
+              }
+            }
+            html += '</ul>';
+          }
+          
+          // Recommendations
+          if (data.recommendations && data.recommendations.length > 0) {
+            html += '<h3>Strategic Recommendations</h3><ol>';
+            data.recommendations.forEach(rec => {
+              html += `<li>${rec}</li>`;
+            });
+            html += '</ol>';
+          }
+          
+          html += '</div></div>';
+          return html;
+        }
+        
+        return JSON.stringify(data, null, 2);
+      }
+    });
+  </script>
+</body>
+</html>

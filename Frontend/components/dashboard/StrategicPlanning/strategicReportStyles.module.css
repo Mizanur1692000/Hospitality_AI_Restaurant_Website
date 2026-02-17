@@ -1,0 +1,202 @@
+.strategicHtml :global(.report) {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 250, 252, 0.95) 100%
+  ) !important;
+  border: 1px solid rgba(14, 165, 233, 0.12) !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.strategicHtml :global(.report .report__header) {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%) !important;
+  color: #fff !important;
+  padding: 20px !important;
+  text-align: center !important;
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.strategicHtml :global(.report .report__meta) {
+  opacity: 0.95;
+  font-size: 0.875rem;
+  margin-top: 6px;
+}
+
+.strategicHtml :global(.report .report__body) {
+  color: #374151 !important;
+  padding: 20px !important;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.5) 0%,
+    transparent 100%
+  );
+}
+
+.strategicHtml :global(.section) {
+  margin-bottom: 1.5rem;
+}
+
+.strategicHtml :global(.section-title) {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0284c7;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid rgba(14, 165, 233, 0.18);
+}
+
+.strategicHtml :global(.metrics-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.strategicHtml :global(.metric-card) {
+  background: rgba(14, 165, 233, 0.06);
+  border: 1px solid rgba(14, 165, 233, 0.15);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.strategicHtml :global(.metric-label) {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.strategicHtml :global(.metric-value) {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0284c7;
+}
+
+.strategicHtml :global(.badge) {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.strategicHtml :global(.badge--excellent) {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff;
+}
+
+.strategicHtml :global(.badge--good) {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  color: #fff;
+}
+
+.strategicHtml :global(.badge--acceptable) {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  color: #fff;
+}
+
+.strategicHtml :global(.badge--needs-improvement) {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: #fff;
+}
+
+.strategicHtml :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.strategicHtml :global(th) {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.strategicHtml :global(td) {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.strategicHtml :global(tr:hover td) {
+  background: rgba(14, 165, 233, 0.04);
+}
+
+.strategicHtml :global(ul),
+.strategicHtml :global(ol) {
+  padding-left: 1.25rem;
+}
+
+.strategicHtml :global(li) {
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.strategicHtml :global(pre) {
+  white-space: pre-wrap;
+}
+
+.strategicHtml :global(h2) {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.strategicHtml :global(h3) {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0369a1;
+  margin: 1rem 0 0.5rem;
+}
+
+.strategicHtml :global(h4) {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0284c7;
+  margin: 0.75rem 0 0.4rem;
+}
+
+.strategicHtml :global(.highlight-box) {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(2, 132, 199, 0.05));
+  border-left: 4px solid #0ea5e9;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 1rem 0;
+}
+
+.strategicHtml :global(.warning-box) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(217, 119, 6, 0.05));
+  border-left: 4px solid #f59e0b;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 1rem 0;
+}
+
+.strategicHtml :global(.success-box) {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(16, 185, 129, 0.05));
+  border-left: 4px solid #10b981;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  margin: 1rem 0;
+}

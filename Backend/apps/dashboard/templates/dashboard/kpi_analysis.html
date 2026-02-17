@@ -1,0 +1,737 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KPI Analysis - Restaurant Consulting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modern-glass.css' %}">
+  <style>
+    /* Enhanced KPI Page Styles */
+    .kpi-interface {
+      max-width: 1200px;
+    }
+
+    .report {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+      border-radius: var(--radius-xl);
+      box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      margin: var(--spacing-lg) 0;
+      overflow: hidden;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .report__header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      color: white;
+      padding: var(--spacing-xl);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .report__header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      animation: rotate-slow 20s linear infinite;
+    }
+
+    .report__header h2 { 
+      font-size: 1.75rem; 
+      font-weight: 800; 
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .report__meta { 
+      font-size: 0.9rem; 
+      opacity: 0.95;
+      position: relative;
+      z-index: 1;
+    }
+
+    .report__body { 
+      padding: var(--spacing-xl);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .kpi-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      text-align: center;
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 
+        0 20px 50px rgba(102, 126, 234, 0.2),
+        0 0 0 1px rgba(102, 126, 234, 0.2);
+    }
+
+    .kpi-value { 
+      font-size: 2.5rem; 
+      font-weight: 800; 
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+
+    .kpi-label { 
+      font-size: 0.9rem; 
+      color: var(--text-secondary); 
+      margin-top: 0.5rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .kpi-status { 
+      font-size: 0.8rem; 
+      margin-top: 0.75rem; 
+      padding: 0.375rem 0.875rem; 
+      border-radius: var(--radius-full); 
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    .kpi-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: status-pulse 2s infinite;
+    }
+
+    .kpi-status.good { 
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(52, 211, 153, 0.15) 100%);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .kpi-status.warning { 
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.15) 100%);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .kpi-status.alert { 
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(248, 113, 113, 0.15) 100%);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes status-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* Enhanced Core Task Cards */
+    .core-task-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .core-task-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .core-task-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .core-task-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 
+        0 25px 50px rgba(102, 126, 234, 0.2),
+        0 0 0 1px rgba(102, 126, 234, 0.15);
+    }
+
+    .core-task-card:hover .task-icon {
+      transform: scale(1.15) rotate(5deg);
+      box-shadow: 
+        0 15px 40px rgba(102, 126, 234, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    /* AI Analysis Section */
+    .ai-analysis-section {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      margin-top: var(--spacing-lg);
+    }
+
+    .ai-analysis-section h4 {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #7c3aed;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .ai-analysis-section h4::before {
+      content: '🤖';
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  <div class="floating-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-circle" aria-hidden="true">C</div>
+        <div class="brand-text">
+          <div class="company-name">Curated Restaurant Consulting</div>
+          <div class="company-tagline">Driven by Data. Crafted for Excellence.</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="language-selector">
+          <select id="language-select" onchange="changeLanguage(this.value)">
+            <option value="en">🇺🇸 English</option>
+            <option value="es">🇪🇸 Español</option>
+          </select>
+        </div>
+        <a href="/dashboard/" class="back-button">← Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="glass-interface kpi-interface">
+      <!-- Page Header -->
+      <section class="page-header">
+        <h1 class="page-title">KPI Analysis</h1>
+        <p class="page-subtitle">Comprehensive performance tracking with real-time KPI monitoring, benchmarking, and actionable insights</p>
+
+        <!-- Core Tasks Grid -->
+        <div class="core-tasks-grid">
+          <!-- Labor Cost Analysis -->
+          <div class="core-task-card" onclick="analyzeLaborCost()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="20" cy="12" r="6" stroke="white" stroke-width="2"/>
+                <path d="M8 36V34C8 28.4772 12.4772 24 18 24H22C27.5228 24 32 28.4772 32 34V36" stroke="white" stroke-width="2"/>
+                <path d="M28 8L32 12L28 16" stroke="white" stroke-width="2"/>
+                <path d="M32 12H24" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Labor Cost Analysis</div>
+            <div class="task-desc">Track and optimize labor expenses</div>
+            <ul class="task-features">
+              <li>Labor cost percentage</li>
+              <li>Overtime tracking</li>
+              <li>Productivity metrics</li>
+            </ul>
+          </div>
+
+          <!-- Food Cost Analysis -->
+          <div class="core-task-card" onclick="analyzeFoodCost()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="20" cy="20" r="14" stroke="white" stroke-width="2"/>
+                <path d="M20 10V20L26 26" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="20" cy="20" r="3" fill="white"/>
+              </svg>
+            </div>
+            <div class="task-title">Food Cost Analysis</div>
+            <div class="task-desc">Monitor and control food expenses</div>
+            <ul class="task-features">
+              <li>Food cost percentage</li>
+              <li>Waste tracking</li>
+              <li>Menu costing</li>
+            </ul>
+          </div>
+
+          <!-- Prime Cost Analysis -->
+          <div class="core-task-card" onclick="analyzePrimeCost()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="4" y="28" width="4" height="8" rx="2" fill="white"/>
+                <rect x="10" y="22" width="4" height="14" rx="2" fill="white"/>
+                <rect x="16" y="18" width="4" height="18" rx="2" fill="white"/>
+                <rect x="22" y="12" width="4" height="24" rx="2" fill="white"/>
+                <rect x="28" y="8" width="4" height="28" rx="2" fill="white"/>
+                <path d="M6 16L12 10L18 14L26 6L32 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="task-title">Prime Cost Analysis</div>
+            <div class="task-desc">Combined labor and food cost tracking</div>
+            <ul class="task-features">
+              <li>Prime cost percentage</li>
+              <li>Target benchmarking</li>
+              <li>Trend analysis</li>
+            </ul>
+          </div>
+
+          <!-- Sales Performance -->
+          <div class="core-task-card" onclick="analyzeSalesPerformance()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <path d="M20 4V36" stroke="white" stroke-width="2"/>
+                <path d="M14 10C14 10 14 8 20 8C26 8 26 12 20 12C14 12 14 16 20 16C26 16 26 14 26 14" stroke="white" stroke-width="2"/>
+                <circle cx="20" cy="24" r="8" stroke="white" stroke-width="2"/>
+                <path d="M20 20V28" stroke="white" stroke-width="2"/>
+                <path d="M16 24H24" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Sales Performance</div>
+            <div class="task-desc">Revenue analysis and forecasting</div>
+            <ul class="task-features">
+              <li>Sales per labor hour</li>
+              <li>Revenue trends</li>
+              <li>Growth analysis</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chat Section -->
+      <section class="chat-section">
+        <div class="chat-header">
+          <h3 class="chat-title">AI Assistant</h3>
+          <button class="clear-chat" onclick="clearChat()">Clear Chat</button>
+        </div>
+
+        <div class="messages-area" id="messages-area">
+          <div class="message assistant">
+            <div class="message-bubble">Hello! I'm here to help you analyze your restaurant's KPIs. <strong>To get accurate analysis, please provide your data</strong> in one of these ways:<br><br>
+              1. <strong>Upload a CSV file</strong> with columns: date, sales, labor_cost, food_cost, labor_hours<br>
+              2. <strong>Type your numbers</strong> in the chat, for example: "My total sales are $50,000, labor cost is $15,000, food cost is $14,000, and we worked 800 hours"<br><br>
+              Click the quick action buttons below to see example prompts with sample data.</div>
+            <div class="message-time">Just now</div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-container">
+            <textarea id="chat-input" class="chat-input" placeholder="Enter KPI data or ask a question..." rows="1"></textarea>
+            <input type="file" id="file-input" accept=".csv" class="file-input"/>
+            <button id="upload-button" class="upload-button" title="Upload CSV for analysis">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+              </svg>
+            </button>
+            <button id="send-button" class="send-button" onclick="sendMessage()">
+              <span>Send</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const messagesArea = document.getElementById('messages-area');
+      const chatInput = document.getElementById('chat-input');
+      const fileInput = document.getElementById('file-input');
+      const uploadButton = document.getElementById('upload-button');
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
+      }
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      uploadButton.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        addMessage(`📁 Uploading: ${file.name}`, true);
+        
+        const formData = new FormData();
+        formData.append('task', 'kpi_analysis');
+        formData.append('file', file);
+
+        try {
+          const response = await fetch('/api/agent/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN, 'X-KPI-Analysis-Entitled': 'true' },
+            body: formData
+          });
+          const data = await response.json();
+          console.log('KPI Analysis Response:', data); // Debug logging
+          if (data.error) {
+            addMessage(`❌ Error: ${data.error}`, false);
+          } else if (data.code && data.message) {
+            // Handle API error response format
+            addMessage(`❌ Error: ${data.message}`, false);
+          } else {
+            const report = formatKPIReport(data);
+            console.log('Formatted Report HTML:', report.substring(0, 500)); // Debug logging
+            addMessage(report, false);
+          }
+        } catch (error) {
+          console.error('KPI Analysis Error:', error);
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+        fileInput.value = '';
+      });
+
+      window.sendMessage = async function() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+
+        try {
+          const response = await fetch('/chat/api/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': CSRF_TOKEN
+            },
+            body: `message=${encodeURIComponent(message)}&context=kpi`
+          });
+          const data = await response.json();
+          addMessage(data.error ? `❌ Error: ${data.error}` : (data.response || 'No response'), false);
+        } catch (error) {
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+      };
+
+      function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = content;
+        const time = document.createElement('div');
+        time.className = 'message-time';
+        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(time);
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }
+
+      function formatKPIReport(data) {
+        if (!data) return '<div class="report"><div class="report__header" style="background: linear-gradient(135deg, #ef4444, #dc2626);"><h2>❌ No Data</h2></div><div class="report__body"><p>No data received from server</p></div></div>';
+        
+        console.log('formatKPIReport received data:', JSON.stringify(data, null, 2));
+        
+        // Handle error responses
+        if (data.status === 'error') {
+          let errorHtml = `<div class="report"><div class="report__header" style="background: linear-gradient(135deg, #ef4444, #dc2626);"><h2>❌ Analysis Error</h2></div>`;
+          errorHtml += `<div class="report__body"><p><strong>Error:</strong> ${data.message || 'Unknown error'}</p>`;
+          if (data.help) errorHtml += `<p><strong>Help:</strong> ${data.help}</p>`;
+          if (data.found_columns) errorHtml += `<p><strong>Found columns:</strong> ${data.found_columns.join(', ')}</p>`;
+          errorHtml += '</div></div>';
+          return errorHtml;
+        }
+        
+        // Handle CSV upload response format (with summary, daily_kpis, recommendations)
+        if (data.summary || data.recommendations || data.daily_kpis) {
+          let html = `<div class="report"><div class="report__header"><h2>📊 KPI Analysis Report</h2>`;
+          html += `<div class="report__meta">Generated: ${new Date().toLocaleString()}</div>`;
+          if (data.file_info) html += `<div class="report__meta">File: ${data.file_info} | Period: ${data.period_analyzed || 'N/A'}</div>`;
+          html += `</div><div class="report__body">`;
+          
+          // Summary KPI Grid
+          if (data.summary) {
+            html += '<h3 style="color: #667eea; margin-bottom: 1rem;">📈 Summary Metrics</h3><div class="kpi-grid">';
+            
+            const summary = data.summary;
+            if (summary.total_sales) {
+              html += `<div class="kpi-card"><div class="kpi-value">${summary.total_sales}</div><div class="kpi-label">Total Sales</div></div>`;
+            }
+            if (summary.avg_labor_percent) {
+              const laborVal = parseFloat(summary.avg_labor_percent);
+              const status = laborVal <= 30 ? 'good' : laborVal <= 35 ? 'warning' : 'alert';
+              html += `<div class="kpi-card"><div class="kpi-value">${summary.avg_labor_percent}</div><div class="kpi-label">Avg Labor Cost</div><span class="kpi-status ${status}">${status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Watch' : '⚠ Alert'}</span></div>`;
+            }
+            if (summary.avg_food_percent) {
+              const foodVal = parseFloat(summary.avg_food_percent);
+              const status = foodVal <= 30 ? 'good' : foodVal <= 35 ? 'warning' : 'alert';
+              html += `<div class="kpi-card"><div class="kpi-value">${summary.avg_food_percent}</div><div class="kpi-label">Avg Food Cost</div><span class="kpi-status ${status}">${status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Watch' : '⚠ Alert'}</span></div>`;
+            }
+            if (summary.avg_prime_percent) {
+              const primeVal = parseFloat(summary.avg_prime_percent);
+              const status = primeVal <= 60 ? 'good' : primeVal <= 65 ? 'warning' : 'alert';
+              html += `<div class="kpi-card"><div class="kpi-value">${summary.avg_prime_percent}</div><div class="kpi-label">Avg Prime Cost</div><span class="kpi-status ${status}">${status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Watch' : '⚠ Alert'}</span></div>`;
+            }
+            if (summary.avg_sales_per_hour) {
+              html += `<div class="kpi-card"><div class="kpi-value">${summary.avg_sales_per_hour}</div><div class="kpi-label">Avg Sales/Hour</div></div>`;
+            }
+            if (summary.trend) {
+              const trendIcon = summary.trend === 'improving' ? '📈' : summary.trend === 'declining' ? '📉' : '➡️';
+              const trendStatus = summary.trend === 'improving' ? 'good' : summary.trend === 'declining' ? 'alert' : 'warning';
+              html += `<div class="kpi-card"><div class="kpi-value">${trendIcon} ${summary.trend.charAt(0).toUpperCase() + summary.trend.slice(1)}</div><div class="kpi-label">Performance Trend</div><span class="kpi-status ${trendStatus}">${summary.trend === 'improving' ? '✓ Positive' : summary.trend === 'declining' ? '⚠ Negative' : '○ Stable'}</span></div>`;
+            }
+            html += '</div>';
+          } else {
+            html += '<p style="color: #888;">No summary data available</p>';
+          }
+          
+          // Recommendations
+          if (data.recommendations && data.recommendations.length > 0) {
+            html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">💡 Strategic Recommendations</h3>';
+            html += '<div class="recommendations-grid" style="display: grid; gap: 1rem;">';
+            data.recommendations.forEach(rec => {
+              const priorityClass = rec.priority === 'Critical' ? 'alert' : rec.priority === 'High' ? 'warning' : 'good';
+              html += `<div style="background: rgba(102, 126, 234, 0.1); border-radius: 0.5rem; padding: 1rem; border-left: 4px solid ${priorityClass === 'alert' ? '#ef4444' : priorityClass === 'warning' ? '#f59e0b' : '#10b981'};">`;
+              html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">`;
+              html += `<strong style="color: #667eea;">${rec.category}</strong>`;
+              html += `<span class="kpi-status ${priorityClass}">${rec.priority}</span>`;
+              html += `</div>`;
+              html += `<p style="margin: 0.5rem 0; color: var(--text-primary);">${rec.action}</p>`;
+              html += `<p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary);"><em>Impact: ${rec.impact}</em></p>`;
+              html += `</div>`;
+            });
+            html += '</div>';
+          }
+          
+          // Daily KPIs Table
+          if (data.daily_kpis && data.daily_kpis.length > 0) {
+            html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">📅 Daily Performance (Last ' + data.daily_kpis.length + ' Days)</h3>';
+            html += '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">';
+            html += '<thead><tr style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">';
+            html += '<th style="padding: 0.75rem; text-align: left;">Date</th>';
+            html += '<th style="padding: 0.75rem; text-align: right;">Sales</th>';
+            html += '<th style="padding: 0.75rem; text-align: right;">Labor %</th>';
+            html += '<th style="padding: 0.75rem; text-align: right;">Food %</th>';
+            html += '<th style="padding: 0.75rem; text-align: right;">Prime %</th>';
+            html += '<th style="padding: 0.75rem; text-align: right;">Sales/Hour</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.daily_kpis.forEach((day, idx) => {
+              const rowBg = idx % 2 === 0 ? 'rgba(102, 126, 234, 0.05)' : 'transparent';
+              html += `<tr style="background: ${rowBg}; border-bottom: 1px solid rgba(102, 126, 234, 0.1);">`;
+              html += `<td style="padding: 0.75rem;">${day.date}</td>`;
+              html += `<td style="padding: 0.75rem; text-align: right;">$${day.sales?.toLocaleString() || 'N/A'}</td>`;
+              html += `<td style="padding: 0.75rem; text-align: right;"><span class="kpi-status ${day.labor_percent <= 30 ? 'good' : day.labor_percent <= 35 ? 'warning' : 'alert'}">${day.labor_percent?.toFixed(1) || 'N/A'}%</span></td>`;
+              html += `<td style="padding: 0.75rem; text-align: right;"><span class="kpi-status ${day.food_percent <= 30 ? 'good' : day.food_percent <= 35 ? 'warning' : 'alert'}">${day.food_percent?.toFixed(1) || 'N/A'}%</span></td>`;
+              html += `<td style="padding: 0.75rem; text-align: right;"><span class="kpi-status ${day.prime_percent <= 60 ? 'good' : day.prime_percent <= 65 ? 'warning' : 'alert'}">${day.prime_percent?.toFixed(1) || 'N/A'}%</span></td>`;
+              html += `<td style="padding: 0.75rem; text-align: right;">$${day.sales_per_hour?.toFixed(2) || 'N/A'}</td>`;
+              html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+          }
+          
+          // AI Analysis Section
+          if (data.ai_analysis) {
+            html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">🤖 AI-Powered Analysis</h3>';
+            html += '<div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-radius: 0.75rem; padding: 1.5rem; border: 1px solid rgba(102, 126, 234, 0.2);">';
+            // Convert markdown-style formatting to HTML
+            let aiContent = data.ai_analysis
+              .replace(/\*\*(.+?)\*\*/g, '<strong style="color: #667eea;">$1</strong>')
+              .replace(/\n\n/g, '</p><p style="margin: 1rem 0; line-height: 1.6;">')
+              .replace(/\n- /g, '</p><li style="margin-left: 1.5rem; padding: 0.25rem 0;">')
+              .replace(/\n\d+\. /g, '</p><li style="margin-left: 1.5rem; padding: 0.25rem 0;">');
+            html += `<div style="color: var(--text-primary); line-height: 1.6;"><p style="margin: 0 0 1rem 0;">${aiContent}</p></div>`;
+            html += '</div>';
+          }
+          
+          html += '</div></div>';
+          return html;
+        }
+        
+        // Handle business report format (with business_report_html)
+        if (data.business_report_html) {
+          return data.business_report_html;
+        }
+        
+        // Handle legacy format with direct KPI values
+        let html = '<div class="report"><div class="report__header"><h2>📊 KPI Analysis Report</h2>';
+        html += `<div class="report__meta">Generated: ${new Date().toLocaleString()}</div></div>`;
+        html += '<div class="report__body">';
+        
+        // Debug: Show raw data keys for troubleshooting
+        console.log('Legacy format - data keys:', Object.keys(data));
+        
+        html += '<div class="kpi-grid">';
+        
+        if (data.labor_cost_percent !== undefined) {
+          const status = data.labor_cost_percent <= 30 ? 'good' : data.labor_cost_percent <= 35 ? 'warning' : 'alert';
+          html += `<div class="kpi-card"><div class="kpi-value">${data.labor_cost_percent.toFixed(1)}%</div><div class="kpi-label">Labor Cost</div><span class="kpi-status ${status}">${status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Watch' : '⚠ Alert'}</span></div>`;
+        }
+        if (data.food_cost_percent !== undefined) {
+          const status = data.food_cost_percent <= 30 ? 'good' : data.food_cost_percent <= 35 ? 'warning' : 'alert';
+          html += `<div class="kpi-card"><div class="kpi-value">${data.food_cost_percent.toFixed(1)}%</div><div class="kpi-label">Food Cost</div><span class="kpi-status ${status}">${status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Watch' : '⚠ Alert'}</span></div>`;
+        }
+        if (data.prime_cost_percent !== undefined) {
+          const status = data.prime_cost_percent <= 60 ? 'good' : data.prime_cost_percent <= 65 ? 'warning' : 'alert';
+          html += `<div class="kpi-card"><div class="kpi-value">${data.prime_cost_percent.toFixed(1)}%</div><div class="kpi-label">Prime Cost</div><span class="kpi-status ${status}">${status === 'good' ? '✓ Good' : status === 'warning' ? '⚠ Watch' : '⚠ Alert'}</span></div>`;
+        }
+        if (data.sales_per_labor_hour !== undefined) {
+          html += `<div class="kpi-card"><div class="kpi-value">$${data.sales_per_labor_hour.toFixed(2)}</div><div class="kpi-label">Sales/Labor Hour</div></div>`;
+        }
+        
+        // Show simple scalar fields from the response (not objects/arrays)
+        const excludeKeys = ['status', 'labor_cost_percent', 'food_cost_percent', 'prime_cost_percent', 'sales_per_labor_hour', 'summary', 'daily_kpis', 'recommendations', 'ai_analysis', 'file_info', 'period_analyzed', 'kpis', 'business_report', 'industry_benchmarks'];
+        for (const [key, value] of Object.entries(data)) {
+          if (!excludeKeys.includes(key) && value !== undefined && value !== null && typeof value !== 'object') {
+            html += `<div class="kpi-card"><div class="kpi-value">${typeof value === 'number' ? value.toFixed(2) : value}</div><div class="kpi-label">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div></div>`;
+          }
+        }
+        
+        html += '</div>';
+        
+        // If we have summary or kpis as objects, display them properly
+        if (data.kpis && typeof data.kpis === 'object') {
+          html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">📊 KPI Metrics</h3><div class="kpi-grid">';
+          for (const [key, kpi] of Object.entries(data.kpis)) {
+            if (kpi && typeof kpi === 'object' && kpi.value !== undefined) {
+              const statusClass = kpi.assessment === 'excellent' ? 'good' : kpi.assessment === 'good' ? 'good' : kpi.assessment === 'needs_improvement' ? 'alert' : 'warning';
+              html += `<div class="kpi-card"><div class="kpi-value">${kpi.icon || ''} ${typeof kpi.value === 'number' ? (key.includes('percent') ? kpi.value.toFixed(1) + '%' : '$' + kpi.value.toFixed(2)) : kpi.value}</div><div class="kpi-label">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div><span class="kpi-status ${statusClass}">${kpi.assessment || ''}</span><div style="font-size: 0.75rem; color: #888; margin-top: 0.25rem;">Benchmark: ${kpi.benchmark || 'N/A'}</div></div>`;
+            }
+          }
+          html += '</div>';
+        }
+        
+        html += '</div></div>';
+        return html;
+      }
+
+      window.clearChat = function() {
+        messagesArea.innerHTML = `
+          <div class="message assistant">
+            <div class="message-bubble">Hello! I'm here to help you analyze your restaurant's KPIs. <strong>To get accurate analysis, please provide your data</strong> in one of these ways:<br><br>
+              <strong>📊 KPI Analysis:</strong> Upload CSV with: date, sales, labor_cost, food_cost, labor_hours<br>
+              <strong>👥 Labor Cost:</strong> sales, labor_cost, hours_worked, overtime_hours, covers<br>
+              <strong>🍕 Food Cost:</strong> sales, food_cost, waste_cost, covers<br>
+              <strong>⚖️ Prime Cost:</strong> sales, labor_cost, food_cost, covers<br>
+              <strong>🍷 Liquor Cost:</strong> sales, liquor_cost, waste_cost, covers<br><br>
+              Click the quick action buttons below to see example prompts with sample data.</div>
+            <div class="message-time">Just now</div>
+          </div>
+        `;
+      };
+
+      // Auto-submit helper function
+      const autoSubmitMessage = (message) => {
+        chatInput.value = message;
+        // Trigger the form submission
+        const form = document.getElementById('chat-form');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+      };
+
+      // Labor Cost Analysis
+      // Required: total_sales, labor_cost, hours_worked
+      // Optional: overtime_hours, covers (for overtime tracking & productivity metrics)
+      window.analyzeLaborCost = () => { autoSubmitMessage('Analyze my labor cost. Total sales: $50,000. Labor cost: $15,000. Hours worked: 800. Overtime hours: 40. Covers served: 2,000.'); };
+      
+      // Food Cost Analysis
+      // Required: total_sales, food_cost
+      // Optional: waste_cost, covers, beginning_inventory, ending_inventory (for waste tracking & inventory analysis)
+      window.analyzeFoodCost = () => { autoSubmitMessage('Analyze my food cost. Total sales: $50,000. Food cost: $14,000. Waste cost: $800. Covers served: 2,000. Beginning inventory: $5,000. Ending inventory: $4,500.'); };
+      
+      // Prime Cost Analysis
+      // Required: total_sales, labor_cost, food_cost
+      // Optional: covers (for per-cover metrics)
+      window.analyzePrimeCost = () => { autoSubmitMessage('Analyze my prime cost. Total sales: $50,000. Labor cost: $15,000. Food cost: $14,000. Covers served: 2,000.'); };
+      
+      // Sales Performance Analysis
+      // Required: total_sales, labor_cost, food_cost, hours_worked
+      // Optional: previous_sales, covers, avg_check (for growth analysis & benchmarking)
+      window.analyzeSalesPerformance = () => { autoSubmitMessage('Analyze my sales performance. Total sales: $50,000. Labor cost: $15,000. Food cost: $14,000. Hours worked: 800. Previous sales: $48,000. Covers served: 2,000. Average check: $25.'); };
+      
+      window.changeLanguage = (lang) => console.log('Language:', lang);
+    });
+  </script>
+</body>
+</html>

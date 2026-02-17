@@ -1,0 +1,1291 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Menu Engineering - Restaurant Consulting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modern-glass.css' %}">
+  <style>
+    /* Theme overrides for brighter, more legible palette */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #06b6d4 0%, #7c3aed 50%, #f472b6 100%);
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+    }
+
+    /* Enhanced Menu Engineering Styles */
+    .menu-matrix {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-lg);
+      margin: var(--spacing-xl) 0;
+    }
+    @media (max-width: 768px) { .menu-matrix { grid-template-columns: 1fr; } }
+    
+    .matrix-quadrant {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      min-height: 220px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .matrix-quadrant::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, currentColor 0%, transparent 70%);
+      opacity: 0.03;
+      pointer-events: none;
+    }
+
+    .matrix-quadrant:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.1),
+        0 0 0 1px currentColor;
+    }
+
+    .matrix-quadrant::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .matrix-quadrant.stars {
+      color: #10b981;
+    }
+    .matrix-quadrant.stars::before { 
+      background: linear-gradient(90deg, #34d399, #10b981, #059669); 
+    }
+    .matrix-quadrant.stars:hover {
+      box-shadow: 0 25px 50px rgba(245, 158, 11, 0.2), 0 0 0 1px rgba(245, 158, 11, 0.3);
+    }
+
+    .matrix-quadrant.plowhorses {
+      color: #10b981;
+    }
+    .matrix-quadrant.plowhorses::before { 
+      background: linear-gradient(90deg, #34d399, #10b981, #059669); 
+    }
+    .matrix-quadrant.plowhorses:hover {
+      box-shadow: 0 25px 50px rgba(16, 185, 129, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.3);
+    }
+
+    .matrix-quadrant.puzzles {
+      color: #667eea;
+    }
+    .matrix-quadrant.puzzles::before { 
+      background: linear-gradient(90deg, #818cf8, #667eea, #764ba2); 
+    }
+    .matrix-quadrant.puzzles:hover {
+      box-shadow: 0 25px 50px rgba(102, 126, 234, 0.2), 0 0 0 1px rgba(102, 126, 234, 0.3);
+    }
+
+    .matrix-quadrant.dogs {
+      color: #ef4444;
+    }
+    .matrix-quadrant.dogs::before { 
+      background: linear-gradient(90deg, #f87171, #ef4444, #dc2626); 
+    }
+    .matrix-quadrant.dogs:hover {
+      box-shadow: 0 25px 50px rgba(239, 68, 68, 0.2), 0 0 0 1px rgba(239, 68, 68, 0.3);
+    }
+    
+    .quadrant-header { 
+      display: flex; 
+      align-items: center; 
+      gap: var(--spacing-md); 
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .quadrant-icon { 
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: currentColor;
+      color: white;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .quadrant-title { 
+      font-size: 1.25rem; 
+      font-weight: 700; 
+      color: var(--text-primary);
+    }
+
+    .quadrant-subtitle { 
+      font-size: 0.8rem; 
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .quadrant-desc { 
+      font-size: 0.9rem; 
+      color: var(--text-secondary); 
+      margin-bottom: var(--spacing-lg);
+      line-height: 1.6;
+    }
+    
+    .menu-items-list { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0;
+    }
+
+    .menu-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.875rem 1rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.8) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.625rem;
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+    }
+
+    .menu-item:hover {
+      background: white;
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-item-name { 
+      font-weight: 600; 
+      color: var(--text-primary);
+    }
+
+    .menu-item-stats { 
+      display: flex; 
+      gap: 1rem; 
+      color: var(--text-secondary); 
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .analysis-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-xl);
+    }
+    @media (max-width: 992px) { .analysis-cards { grid-template-columns: 1fr; } }
+    
+    .analysis-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .analysis-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--primary-gradient);
+      opacity: 0;
+      transition: opacity var(--transition-normal);
+    }
+
+    .analysis-card:hover::before {
+      opacity: 1;
+    }
+
+    .analysis-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+    }
+
+    .analysis-value { 
+      font-size: 2.5rem; 
+      font-weight: 800; 
+      background: var(--primary-gradient); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+
+    .analysis-label { 
+      font-size: 0.9rem; 
+      color: var(--text-secondary); 
+      margin-top: 0.5rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Core Task Cards Enhancement */
+    .core-task-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .core-task-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .core-task-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .core-task-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 
+        0 25px 50px rgba(102, 126, 234, 0.2),
+        0 0 0 1px rgba(102, 126, 234, 0.15);
+    }
+
+    .core-task-card:hover .task-icon {
+      transform: scale(1.15) rotate(5deg);
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  <div class="floating-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-circle" aria-hidden="true">C</div>
+        <div class="brand-text">
+          <div class="company-name">Curated Restaurant Consulting</div>
+          <div class="company-tagline">Driven by Data. Crafted for Excellence.</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="/dashboard/" class="back-button">← Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="glass-interface">
+      <!-- Page Header -->
+      <section class="page-header">
+        <h1 class="page-title">Menu Engineering</h1>
+        <p class="page-subtitle">Optimize your menu for maximum profitability with data-driven insights and strategic positioning</p>
+
+        <!-- Core Tasks Grid -->
+        <div class="core-tasks-grid">
+          <!-- Menu Analysis -->
+          <div class="core-task-card" onclick="analyzeMenu()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="4" y="4" width="32" height="32" rx="4" stroke="white" stroke-width="2"/>
+                <path d="M10 16H30M10 24H30M10 32H20" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Menu Analysis</div>
+            <div class="task-desc">Comprehensive menu performance review</div>
+            <ul class="task-features">
+              <li>Sales mix analysis</li>
+              <li>Contribution margins</li>
+              <li>Menu matrix mapping</li>
+            </ul>
+          </div>
+
+          <!-- Pricing Strategy -->
+          <div class="core-task-card" onclick="pricingStrategy()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="20" cy="20" r="16" stroke="white" stroke-width="2"/>
+                <path d="M20 10V30" stroke="white" stroke-width="2"/>
+                <path d="M14 14C14 14 16 12 20 12C24 12 26 14 26 16C26 18 24 20 20 20C16 20 14 22 14 24C14 26 16 28 20 28C24 28 26 26 26 26" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Pricing Strategy</div>
+            <div class="task-desc">Data-driven pricing optimization</div>
+            <ul class="task-features">
+              <li>Price elasticity</li>
+              <li>Competitive analysis</li>
+              <li>Profit maximization</li>
+            </ul>
+          </div>
+
+          <!-- Item Optimization -->
+          <div class="core-task-card" onclick="itemOptimization()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="white" stroke-width="2"/>
+                <path d="M20 4V36" stroke="white" stroke-width="2"/>
+                <path d="M4 12L36 28" stroke="white" stroke-width="2"/>
+                <path d="M36 12L4 28" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Item Optimization</div>
+            <div class="task-desc">Improve underperforming items</div>
+            <ul class="task-features">
+              <li>Recipe costing</li>
+              <li>Portion control</li>
+              <li>Description optimization</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analysis Summary -->
+      <div class="analysis-cards">
+        <div class="analysis-card">
+          <div class="analysis-value" id="avg-margin">68%</div>
+          <div class="analysis-label">Average Contribution Margin</div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-value" id="menu-score">B+</div>
+          <div class="analysis-label">Menu Performance Score</div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-value" id="optimization">12</div>
+          <div class="analysis-label">Items Need Optimization</div>
+        </div>
+      </div>
+
+      <!-- Menu Matrix -->
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-md);">Menu Engineering Matrix</h2>
+      <div class="menu-matrix">
+        <!-- Stars -->
+        <div class="matrix-quadrant stars">
+          <div class="quadrant-header">
+            <span class="quadrant-icon">⭐</span>
+            <div>
+              <div class="quadrant-title">Stars</div>
+              <div class="quadrant-subtitle">High Popularity • High Profit</div>
+            </div>
+          </div>
+          <div class="quadrant-desc">Your best performers - maintain quality and visibility</div>
+          <ul class="menu-items-list" id="stars-list">
+            <li class="menu-item"><span class="menu-item-name">Grilled Salmon</span><span class="menu-item-stats"><span>CM: 72%</span><span>Pop: 85%</span></span></li>
+            <li class="menu-item"><span class="menu-item-name">Ribeye Steak</span><span class="menu-item-stats"><span>CM: 68%</span><span>Pop: 82%</span></span></li>
+          </ul>
+        </div>
+
+        <!-- Plowhorses -->
+        <div class="matrix-quadrant plowhorses">
+          <div class="quadrant-header">
+            <span class="quadrant-icon">🐴</span>
+            <div>
+              <div class="quadrant-title">Plowhorses</div>
+              <div class="quadrant-subtitle">High Popularity • Low Profit</div>
+            </div>
+          </div>
+          <div class="quadrant-desc">Increase prices or reduce costs carefully</div>
+          <ul class="menu-items-list" id="plowhorses-list">
+            <li class="menu-item"><span class="menu-item-name">Caesar Salad</span><span class="menu-item-stats"><span>CM: 42%</span><span>Pop: 78%</span></span></li>
+            <li class="menu-item"><span class="menu-item-name">Pasta Primavera</span><span class="menu-item-stats"><span>CM: 38%</span><span>Pop: 75%</span></span></li>
+          </ul>
+        </div>
+
+        <!-- Puzzles -->
+        <div class="matrix-quadrant puzzles">
+          <div class="quadrant-header">
+            <span class="quadrant-icon">🧩</span>
+            <div>
+              <div class="quadrant-title">Puzzles</div>
+              <div class="quadrant-subtitle">Low Popularity • High Profit</div>
+            </div>
+          </div>
+          <div class="quadrant-desc">Increase visibility and marketing</div>
+          <ul class="menu-items-list" id="puzzles-list">
+            <li class="menu-item"><span class="menu-item-name">Duck Confit</span><span class="menu-item-stats"><span>CM: 74%</span><span>Pop: 25%</span></span></li>
+            <li class="menu-item"><span class="menu-item-name">Lobster Risotto</span><span class="menu-item-stats"><span>CM: 70%</span><span>Pop: 22%</span></span></li>
+          </ul>
+        </div>
+
+        <!-- Dogs -->
+        <div class="matrix-quadrant dogs">
+          <div class="quadrant-header">
+            <span class="quadrant-icon">🐕</span>
+            <div>
+              <div class="quadrant-title">Dogs</div>
+              <div class="quadrant-subtitle">Low Popularity • Low Profit</div>
+            </div>
+          </div>
+          <div class="quadrant-desc">Consider removing or repositioning</div>
+          <ul class="menu-items-list" id="dogs-list">
+            <li class="menu-item"><span class="menu-item-name">Veggie Wrap</span><span class="menu-item-stats"><span>CM: 35%</span><span>Pop: 12%</span></span></li>
+            <li class="menu-item"><span class="menu-item-name">Soup of Day</span><span class="menu-item-stats"><span>CM: 32%</span><span>Pop: 15%</span></span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Chat Section -->
+      <section class="chat-section">
+        <div class="chat-header">
+          <h3 class="chat-title">Menu Engineering AI</h3>
+          <button class="clear-chat" onclick="clearChat()">Clear Chat</button>
+        </div>
+
+        <div class="messages-area" id="messages-area">
+          <div class="message assistant">
+            <div class="message-bubble">Welcome to Menu Engineering! <strong>Upload a CSV</strong> or use the quick action cards for examples.<br><br>
+              <strong>📄 CSV Columns (Product Mix):</strong><br>
+              • <em>Required (any matching header)</em>: item_name | product_name | Menu Item, quantity_sold | quantity | Units Sold, price | unit_price | Price<br>
+              • <em>Optional</em>: cost | Food Cost % | Contribution Margin %, revenue, profit, category<br><br>
+              <strong>💰 Pricing Strategy Columns:</strong><br>
+              • <em>Required</em>: item_name | Menu Item, item_price | price, item_cost | cost, competitor_price<br>
+              • <em>Optional</em>: target_food_cost_percent, elasticity_index, category<br><br>
+              <strong>🛠️ Item Optimization Columns:</strong><br>
+              • <em>Required</em>: item_name, quantity_sold, item_cost | cost<br>
+              • <em>Optional</em>: portion_size, portion_cost, recipe_ingredients, description, waste_percent<br><br>
+              <strong>Example CSV (Product Mix):</strong><br>
+              item_name,quantity_sold,price,cost<br>
+              Margherita Pizza,94,21,6<br>
+              Pepperoni Pizza,125,22,5</div>
+            <div class="message-time">Just now</div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-container">
+            <textarea id="chat-input" class="chat-input" placeholder="Click a card to insert an example, or upload a CSV to auto-run analysis." rows="1"></textarea>
+            <input type="file" id="file-input" accept=".csv" class="file-input"/>
+            <button id="upload-button" class="upload-button" title="Upload menu data">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+              </svg>
+            </button>
+            <button id="send-button" class="send-button" onclick="sendMessage()">
+              <span>Analyze</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const messagesArea = document.getElementById('messages-area');
+      const chatInput = document.getElementById('chat-input');
+      const fileInput = document.getElementById('file-input');
+      const uploadButton = document.getElementById('upload-button');
+      let selectedFile = null;
+      let selectedCsvType = null;
+      let selectedKind = null;
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
+      }
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      uploadButton.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        // Read CSV to detect type and auto-run analysis
+        const text = await file.text();
+        const { columns, rows } = parseCsv(text);
+        selectedCsvType = detectCsvType(columns);
+        const kind = selectedCsvType === 'product_mix' ? 'menu'
+                    : selectedCsvType === 'pricing' ? 'pricing'
+                    : selectedCsvType === 'optimization' ? 'optimization'
+                    : null;
+        // Use current input or a sensible default prompt
+        const message = (chatInput.value && chatInput.value.trim()) ? chatInput.value.trim() : (kind ? buildAnalysisPromptText(kind) : 'Analyze menu engineering with the attached CSV');
+        // Inform user and kick off analysis
+        addMessage(`📁 Analyzing CSV: <strong>${file.name}</strong><br><em>Detected type:</em> ${selectedCsvType || 'unknown'}`, true);
+        try {
+          const formData = new FormData();
+          const task = selectedCsvType === 'product_mix' ? 'product_mix'
+                      : selectedCsvType === 'pricing' ? 'pricing'
+                      : selectedCsvType === 'optimization' ? 'optimization'
+                      : 'menu_engineering';
+          formData.append('task', task);
+          formData.append('file', file);
+          formData.append('message', message);
+          formData.append('context', 'menu_engineering');
+          const response = await fetch('/api/agent/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            body: formData
+          });
+          const data = await response.json();
+          if (data.error || data.status === 'error') {
+            const help = data.help ? `<br><strong>Help:</strong> ${data.help}` : '';
+            const cols = data.your_columns?.length ? `<br><strong>Your columns:</strong> ${data.your_columns.join(', ')}` : '';
+            addMessage(`❌ ${data.error || data.message || 'Analysis error'}${help}${cols}`, false);
+          } else if (data.business_report_html) {
+            addMessage(data.business_report_html, false);
+          } else if (selectedCsvType === 'product_mix') {
+            addMessage(formatProductMixReport(data), false);
+          } else if (selectedCsvType === 'pricing') {
+            // Fallback: client-side pricing HTML
+            const html = generatePricingReportFromCsv(rows, columns);
+            addMessage(html, false);
+          } else if (selectedCsvType === 'optimization') {
+            // Fallback: client-side optimization HTML
+            const html = generateItemOptimizationReportFromCsv(rows, columns);
+            addMessage(html, false);
+          } else {
+            // Fallback to plain response if HTML not provided
+            addMessage(data.response || 'Analysis complete.', false);
+          }
+        } catch (error) {
+          addMessage(`❌ Error: ${error.message}`, false);
+        } finally {
+          // Clear attachment state
+          selectedFile = null;
+          selectedCsvType = null;
+          fileInput.value = '';
+        }
+      });
+
+      // --- CSV helpers ---
+      function parseLabeledMenuItems(text) {
+        // Matches: Item: Name. Quantity Sold: 125. Price: $19.00. Cost: $6.20.
+        const items = [];
+        const regex = /Item:\s*([^\.]+)\.\s*Quantity\s*Sold:\s*([\d,]+)\.\s*Price:\s*\$?([\d,.]+)\.\s*Cost:\s*\$?([\d,.]+)\./gi;
+        let m;
+        while ((m = regex.exec(text)) !== null) {
+          const name = m[1].trim();
+          const qty = parseFloat(m[2].replace(/,/g, '')) || 0;
+          const price = parseFloat(m[3].replace(/,/g, '')) || 0;
+          const cost = parseFloat(m[4].replace(/,/g, '')) || 0;
+          if (name && qty > 0 && price > 0) {
+            items.push({ name, quantity_sold: qty, price, cost });
+          }
+        }
+        return items;
+      }
+
+      function parseLabeledPricingRows(text) {
+        // Matches: Item: Name. Item Price: $18.00. Item Cost: $5.50. Competitor Price: $16.00. Target Food Cost Percent: 32%.
+        const rows = [];
+        const regex = /Item:\s*([^\.]+)\.\s*Item\s*Price:\s*\$?([\d,.]+)\.\s*Item\s*Cost:\s*\$?([\d,.]+)\.\s*Competitor\s*Price:\s*\$?([\d,.]+)\.\s*Target\s*Food\s*Cost\s*Percent:\s*([\d,.]+)%/gi;
+        let m;
+        while ((m = regex.exec(text)) !== null) {
+          const name = m[1].trim();
+          const price = parseFloat(m[2].replace(/,/g, '')) || 0;
+          const cost = parseFloat(m[3].replace(/,/g, '')) || 0;
+          const competitor = parseFloat(m[4].replace(/,/g, '')) || 0;
+          const target = parseFloat(m[5].replace(/,/g, '')) || 32.0;
+          rows.push({ item_name: name, item_price: price, item_cost: cost, competitor_price: competitor, target_food_cost_percent: target });
+        }
+        return rows;
+      }
+
+      function parseLabeledOptimizationRows(text) {
+        // Flexible parser: extracts fields independently, allows optional segments (e.g., Recipe Ingredients) in any order.
+        const rows = [];
+        const parts = text.split(/Item:\s*/i).slice(1);
+        parts.forEach(part => {
+          // Name up to first period
+          const nameMatch = part.match(/^([^\.]+)/);
+          const name = nameMatch ? nameMatch[1].trim() : '';
+          // Independent field extraction
+          const qtyMatch = part.match(/Quantity\s*Sold:\s*([\d,.]+)/i);
+          const costMatch = part.match(/Item\s*Cost:\s*\$?([\d,.]+)/i);
+          const pSizeMatch = part.match(/Portion\s*Size:\s*([^\.]+)/i);
+          const pCostMatch = part.match(/Portion\s*Cost:\s*\$?([\d,.]+)/i);
+          const wasteMatch = part.match(/Waste\s*Percent:\s*([\d,.]+)%/i);
+          const descMatch = part.match(/Description:\s*([^\n]+)/i);
+
+          const quantity_sold = qtyMatch ? parseFloat(qtyMatch[1].replace(/,/g, '')) : 0;
+          const item_cost = costMatch ? parseFloat(costMatch[1].replace(/,/g, '')) : 0;
+          const portion_size = pSizeMatch ? pSizeMatch[1].trim() : '';
+          const portion_cost = pCostMatch ? parseFloat(pCostMatch[1].replace(/,/g, '')) : 0;
+          const waste_percent = wasteMatch ? parseFloat(wasteMatch[1].replace(/,/g, '')) : 0;
+          const description = descMatch ? descMatch[1].trim() : '';
+
+          if (name) {
+            rows.push({ item_name: name, quantity_sold, item_cost, portion_size, portion_cost, waste_percent, description });
+          }
+        });
+        return rows;
+      }
+      function parseCsv(text) {
+        const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+        if (lines.length === 0) return { columns: [], rows: [] };
+        const header = lines[0].split(',').map(h => h.trim());
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].split(',');
+          const obj = {};
+          header.forEach((h, idx) => obj[h.trim()] = (parts[idx] ?? '').trim());
+          rows.push(obj);
+        }
+        return { columns: header, rows };
+      }
+
+      function detectCsvType(columns) {
+        const lower = columns.map(c => c.toLowerCase());
+        const has = (key) => lower.some(c => c === key || c.includes(key));
+        const hasAny = (...keys) => keys.some(k => has(k));
+        const hasName = hasAny('item_name', 'product_name', 'menu item');
+        const hasQty = hasAny('quantity_sold', 'quantity', 'units sold');
+        const hasPrice = hasAny('item_price', 'price', 'unit_price');
+        const hasCost = hasAny('item_cost', 'cost');
+        const hasCompetitor = has('competitor_price');
+        const hasOptimizationSignals = hasAny('portion_size', 'portion_cost', 'waste_percent', 'waste %', 'description', 'recipe_ingredients');
+        const hasMenuSignals = hasAny('food_cost_percent', 'food cost %', 'contribution_margin_percent', 'contribution margin %', 'revenue', 'profit', 'category');
+
+        // Pricing strategy signature (most specific)
+        if (hasName && hasPrice && hasCost && hasCompetitor) {
+          return 'pricing';
+        }
+
+        // Item optimization (explicit signals win even if price exists)
+        if (hasName && hasQty && hasCost && hasOptimizationSignals) {
+          return 'optimization';
+        }
+
+        // Menu analysis / product mix (prefer when price is present)
+        if (hasName && hasQty && hasPrice) {
+          return 'product_mix';
+        }
+
+        // Item optimization (when no price or no menu signals)
+        if (hasName && hasQty && hasCost && (!hasPrice || !hasMenuSignals)) {
+          return 'optimization';
+        }
+        return 'unknown';
+      }
+
+      function toNumber(v) {
+        if (v == null) return 0;
+        const s = String(v).replace(/[$,%]/g, '').replace(/\s/g, '');
+        const n = parseFloat(s);
+        return isNaN(n) ? 0 : n;
+      }
+
+      function generatePricingReportFromCsv(rows, columns) {
+        // Map common names
+        const map = (row, keys) => {
+          for (const k of keys) {
+            if (row[k] !== undefined) return row[k];
+          }
+          // fuzzy contains
+          const foundKey = Object.keys(row).find(h => keys.some(k => h.toLowerCase().includes(k)));
+          return foundKey ? row[foundKey] : undefined;
+        };
+
+        const items = rows.map(r => {
+          const name = map(r, ['item_name','menu item','product_name']);
+          const price = toNumber(map(r, ['item_price','price']));
+          const cost = toNumber(map(r, ['item_cost','cost']));
+          const competitor = toNumber(map(r, ['competitor_price']));
+          const target = toNumber(map(r, ['target_food_cost_percent','target food cost %']));
+          return { name, price, cost, competitor, target };
+        }).filter(i => i.name && i.price > 0 && i.cost >= 0);
+
+        const defaultTarget = items.find(i => i.target > 0)?.target || 32.0;
+        let underpriced = [], overpriced = [], wellPriced = [];
+        items.forEach(i => {
+          const foodCostPct = i.price > 0 ? (i.cost / i.price) * 100 : 0;
+          const competitorGap = i.competitor > 0 ? ((i.price - i.competitor) / i.competitor) * 100 : 0;
+          if (foodCostPct > defaultTarget) {
+            underpriced.push({ ...i, foodCostPct, competitorGap });
+          } else if (i.competitor > 0 && competitorGap > 10) {
+            overpriced.push({ ...i, foodCostPct, competitorGap });
+          } else {
+            wellPriced.push({ ...i, foodCostPct, competitorGap });
+          }
+        });
+
+        const metrics = {
+          underpricedCount: underpriced.length,
+          overpricedCount: overpriced.length,
+          wellPricedCount: wellPriced.length,
+          avgPrice: items.length ? (items.reduce((a,b)=>a+b.price,0)/items.length) : 0,
+          minPrice: items.length ? Math.min(...items.map(i=>i.price)) : 0,
+          maxPrice: items.length ? Math.max(...items.map(i=>i.price)) : 0,
+          targetFoodCost: defaultTarget
+        };
+
+        // Build HTML with our pricing template
+        let html = renderPricingStrategyTemplate();
+        html += '<div class="report__body">';
+        html += '<h3 style="color:#10b981; margin-bottom:0.5rem;">Key Metrics</h3><div class="kpi-grid">';
+        html += `<div class="kpi-card"><div class="kpi-value">${metrics.underpricedCount}</div><div class="kpi-label">Underpriced</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">${metrics.overpricedCount}</div><div class="kpi-label">Overpriced</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">${metrics.wellPricedCount}</div><div class="kpi-label">Well-Priced</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">$${metrics.avgPrice.toFixed(2)}</div><div class="kpi-label">Avg Price</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">$${metrics.minPrice.toFixed(2)}</div><div class="kpi-label">Min Price</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">$${metrics.maxPrice.toFixed(2)}</div><div class="kpi-label">Max Price</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">${metrics.targetFoodCost.toFixed(1)}%</div><div class="kpi-label">Target Food Cost</div></div>`;
+        html += '</div>';
+
+        // Tracking sections for comprehensive alignment
+        const avgFoodCostPct = items.length ? (items.reduce((a,b)=> a + (b.price>0 ? (b.cost/b.price*100) : 0), 0) / items.length) : 0;
+        const withinTarget = items.filter(i => i.price>0 && (i.cost/i.price*100) <= defaultTarget).length;
+        const compGaps = items.map(i => i.competitor>0 ? ((i.price - i.competitor)/i.competitor*100) : 0);
+        const avgCompGap = compGaps.length ? (compGaps.reduce((a,b)=>a+b,0)/compGaps.length) : 0;
+        const above10 = compGaps.filter(g=>g>10).length;
+        const near10 = compGaps.filter(g=>Math.abs(g)<=10).length;
+        const below0 = compGaps.filter(g=>g<0).length;
+
+        html += '<div class="tracking-section"><h3>📊 Detailed Tracking & Analytics</h3><div class="tracking-grid">';
+        // Pricing Alignment
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#059669)"><span class="tracking-icon">🎯</span><span class="tracking-title">Pricing Alignment</span><span class="badge badge--good" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Underpriced</span><span class="tracking-value">${underpriced.length}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Overpriced</span><span class="tracking-value">${overpriced.length}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Well-Priced</span><span class="tracking-value">${wellPriced.length}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Underpriced %</span><span class="tracking-value">${items.length?((underpriced.length/items.length*100).toFixed(1)):'0.0'}%</span></div>`;
+        html += '</div></div>';
+
+        // Food Cost Compliance
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#06b6d4)"><span class="tracking-icon">🍲</span><span class="tracking-title">Food Cost Compliance</span><span class="badge badge--good" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Target %</span><span class="tracking-value">${defaultTarget.toFixed(1)}%</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Avg Food Cost %</span><span class="tracking-value">${avgFoodCostPct.toFixed(1)}%</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Items Within Target</span><span class="tracking-value">${withinTarget}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Compliance %</span><span class="tracking-value">${items.length?((withinTarget/items.length*100).toFixed(1)):'0.0'}%</span></div>`;
+        html += '</div></div>';
+
+        // Competitive Position
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#3b82f6)"><span class="tracking-icon">🏁</span><span class="tracking-title">Competitive Position</span><span class="badge badge--good" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Avg Competitor Gap %</span><span class="tracking-value">${avgCompGap.toFixed(1)}%</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Above Competitor (>10%)</span><span class="tracking-value">${above10}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Near Competitor (±10%)</span><span class="tracking-value">${near10}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Below Competitor</span><span class="tracking-value">${below0}</span></div>`;
+        html += '</div></div>';
+
+        html += '</div></div>';
+
+        // Underpriced table (top 5 by highest food cost %)
+        if (underpriced.length) {
+          const top = underpriced.sort((a,b)=>b.foodCostPct-a.foodCostPct).slice(0,5);
+          html += '<h3 style="color:#10b981; margin-top:1rem;">Top Underpriced Items</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.875rem">';
+          html += '<thead><tr style="background:#10b981;color:white"><th style="padding:0.5rem;text-align:left">Item</th><th style="padding:0.5rem;text-align:right">Price</th><th style="padding:0.5rem;text-align:right">Cost</th><th style="padding:0.5rem;text-align:right">Food Cost %</th></tr></thead><tbody>';
+          top.forEach(i=>{
+            html += `<tr><td style="padding:0.5rem">${i.name}</td><td style="padding:0.5rem;text-align:right">$${i.price.toFixed(2)}</td><td style="padding:0.5rem;text-align:right">$${i.cost.toFixed(2)}</td><td style="padding:0.5rem;text-align:right">${i.foodCostPct.toFixed(1)}%</td></tr>`;
+          });
+          html += '</tbody></table></div>';
+        }
+
+        // Overpriced table (top 5 by competitor gap)
+        if (overpriced.length) {
+          const top = overpriced.sort((a,b)=>b.competitorGap-a.competitorGap).slice(0,5);
+          html += '<h3 style="color:#ef4444; margin-top:1rem;">Potentially Overpriced Items</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.875rem">';
+          html += '<thead><tr style="background:#ef4444;color:white"><th style="padding:0.5rem;text-align:left">Item</th><th style="padding:0.5rem;text-align:right">Price</th><th style="padding:0.5rem;text-align:right">Competitor</th><th style="padding:0.5rem;text-align:right">Gap %</th></tr></thead><tbody>';
+          top.forEach(i=>{
+            html += `<tr><td style="padding:0.5rem">${i.name}</td><td style="padding:0.5rem;text-align:right">$${i.price.toFixed(2)}</td><td style="padding:0.5rem;text-align:right">$${i.competitor.toFixed(2)}</td><td style="padding:0.5rem;text-align:right">${i.competitorGap.toFixed(1)}%</td></tr>`;
+          });
+          html += '</tbody></table></div>';
+        }
+
+        html += '</div>'; // close report body
+        return html;
+      }
+
+      function generateItemOptimizationReportFromCsv(rows, columns) {
+        const map = (row, keys) => {
+          for (const k of keys) {
+            if (row[k] !== undefined) return row[k];
+          }
+          const foundKey = Object.keys(row).find(h => keys.some(k => h.toLowerCase().includes(k)));
+          return foundKey ? row[foundKey] : undefined;
+        };
+
+        const items = rows.map(r => {
+          const name = map(r, ['item_name','menu item','product_name']);
+          const qty = toNumber(map(r, ['quantity_sold','quantity','units sold']));
+          const cost = toNumber(map(r, ['item_cost','cost']));
+          const portionSize = map(r, ['portion_size']);
+          const portionCost = toNumber(map(r, ['portion_cost']));
+          const waste = toNumber(map(r, ['waste_percent','waste %']));
+          return { name, qty, cost, portionSize, portionCost, waste };
+        }).filter(i => i.name);
+
+        const avgCost = items.length ? (items.reduce((a,b)=>a+b.cost,0)/items.length) : 0;
+        const avgQty = items.length ? (items.reduce((a,b)=>a+b.qty,0)/items.length) : 0;
+        const highWaste = items.filter(i => i.waste >= 5);
+
+        let html = renderItemOptimizationTemplate();
+        html += '<div class="report__body">';
+        html += '<h3 style="color:#10b981; margin-bottom:0.5rem;">Key Metrics</h3><div class="kpi-grid">';
+        html += `<div class="kpi-card"><div class="kpi-value">${items.length}</div><div class="kpi-label">Items</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">$${avgCost.toFixed(2)}</div><div class="kpi-label">Avg Cost/Item</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">${avgQty.toFixed(0)}</div><div class="kpi-label">Avg Units Sold</div></div>`;
+        html += `<div class="kpi-card"><div class="kpi-value">${highWaste.length}</div><div class="kpi-label">High Waste (>=5%)</div></div>`;
+        html += '</div>';
+
+        if (highWaste.length) {
+          const top = highWaste.sort((a,b)=>b.waste-a.waste).slice(0,5);
+          html += '<h3 style="color:#10b981; margin-top:1rem;">Items with High Waste</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.875rem">';
+          html += '<thead><tr style="background:#10b981;color:white"><th style="padding:0.5rem;text-align:left">Item</th><th style="padding:0.5rem;text-align:right">Waste %</th><th style="padding:0.5rem;text-align:left">Portion</th><th style="padding:0.5rem;text-align:right">Portion Cost</th></tr></thead><tbody>';
+          top.forEach(i=>{
+            html += `<tr><td style="padding:0.5rem">${i.name}</td><td style="padding:0.5rem;text-align:right">${i.waste.toFixed(1)}%</td><td style="padding:0.5rem">${i.portionSize||'-'}</td><td style="padding:0.5rem;text-align:right">${i.portionCost?`$${i.portionCost.toFixed(2)}`:'-'}</td></tr>`;
+          });
+          html += '</tbody></table></div>';
+        }
+
+        // Tracking sections for comprehensive alignment
+        const portionInfoCount = items.filter(i => i.portionSize || i.portionCost).length;
+        const standardizationNeeded = items.filter(i => i.waste >= 5 && !i.portionSize).length;
+        const highCostLowQty = items.filter(i => i.cost >= (avgCost*1.2) && i.qty <= (avgQty*0.8));
+        const needsDescription = rows.map(r=>({
+          name: map(r, ['item_name','menu item','product_name']),
+          qty: toNumber(map(r, ['quantity_sold','quantity','units sold'])),
+          desc: map(r, ['description'])
+        })).filter(i => i.name && i.qty <= (avgQty*0.8) && (!i.desc || String(i.desc).trim()===''));
+
+        html += '<div class="tracking-section"><h3>📊 Detailed Tracking & Analytics</h3><div class="tracking-grid">';
+
+        // Waste Tracking
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#059669)"><span class="tracking-icon">🗑️</span><span class="tracking-title">Waste Tracking</span><span class="badge badge--needs-improvement" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Avg Waste %</span><span class="tracking-value">${items.length?(items.reduce((a,b)=>a+b.waste,0)/items.length).toFixed(1):'0.0'}%</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">High Waste (>=5%)</span><span class="tracking-value">${highWaste.length}</span></div>`;
+        html += '</div></div>';
+
+        // Portion Control
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#06b6d4)"><span class="tracking-icon">⚖️</span><span class="tracking-title">Portion Control</span><span class="badge badge--acceptable" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Items With Portion Info</span><span class="tracking-value">${portionInfoCount}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Standardization Needed</span><span class="tracking-value">${standardizationNeeded}</span></div>`;
+        html += '</div></div>';
+
+        // Recipe Costing Opportunities
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#22c55e)"><span class="tracking-icon">📋</span><span class="tracking-title">Recipe Costing Opportunities</span><span class="badge badge--acceptable" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">High Cost & Low Sales</span><span class="tracking-value">${highCostLowQty.length}</span></div>`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Avg Cost/Item</span><span class="tracking-value">$${avgCost.toFixed(2)}</span></div>`;
+        html += '</div></div>';
+
+        // Description Optimization
+        html += `<div class="tracking-card"><div class="tracking-header" style="background:linear-gradient(135deg,#10b981,#3b82f6)"><span class="tracking-icon">📝</span><span class="tracking-title">Description Optimization</span><span class="badge badge--acceptable" style="font-size:.75rem;">Actual</span></div><div class="tracking-body">`;
+        html += `<div class="tracking-metric"><span class="tracking-label">Items Needing Description</span><span class="tracking-value">${needsDescription.length}</span></div>`;
+        html += '</div></div>';
+
+        html += '</div></div>';
+
+        html += '</div>';
+        return html;
+      }
+
+      window.sendMessage = async function() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+
+        try {
+          // If a CSV is attached, prefer the agent endpoint with multipart
+          if (selectedFile) {
+            const formData = new FormData();
+            // Hint task based on detected CSV type
+            const task = selectedCsvType === 'product_mix' ? 'product_mix'
+                        : selectedCsvType === 'pricing' ? 'pricing'
+                        : selectedCsvType === 'optimization' ? 'optimization'
+                        : 'menu_engineering';
+            formData.append('task', task);
+            formData.append('file', selectedFile);
+            formData.append('message', message);
+            formData.append('context', 'menu_engineering');
+            const response = await fetch('/api/agent/', {
+              method: 'POST',
+              headers: { 'X-CSRFToken': CSRF_TOKEN },
+              body: formData
+            });
+            const data = await response.json();
+            if (data.error || data.status === 'error') {
+              const help = data.help ? `<br><strong>Help:</strong> ${data.help}` : '';
+              const cols = data.your_columns?.length ? `<br><strong>Your columns:</strong> ${data.your_columns.join(', ')}` : '';
+              addMessage(`❌ ${data.error || data.message || 'Analysis error'}${help}${cols}`, false);
+            } else if (data.business_report_html) {
+              addMessage(data.business_report_html, false);
+            } else if (selectedCsvType === 'product_mix') {
+              addMessage(formatProductMixReport(data), false);
+            } else {
+              addMessage(data.response || 'Analysis complete.', false);
+            }
+            // Clear attachment after processing
+            selectedFile = null;
+            selectedCsvType = null;
+            fileInput.value = '';
+            return;
+          }
+
+          // No attachment → prefer agent API when we can parse labeled inputs
+          if (selectedKind === 'menu') {
+            const items = parseLabeledMenuItems(message);
+            if (items.length) {
+              const payload = { task: 'pmix_report', payload: { items } };
+              const response = await fetch('/api/agent/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify(payload)
+              });
+              const data = await response.json();
+              if (data.business_report_html) {
+                addMessage(data.business_report_html, false);
+              } else {
+                addMessage(formatProductMixReport(data), false);
+              }
+              return;
+            }
+          }
+
+          if (selectedKind === 'pricing') {
+            const rows = parseLabeledPricingRows(message);
+            if (rows.length) {
+              const columns = ['item_name','item_price','item_cost','competitor_price','target_food_cost_percent'];
+              const html = generatePricingReportFromCsv(rows, columns);
+              addMessage(html, false);
+              return;
+            }
+          }
+
+          if (selectedKind === 'optimization') {
+            const rows = parseLabeledOptimizationRows(message);
+            if (rows.length) {
+              const columns = ['item_name','quantity_sold','item_cost','portion_size','portion_cost','waste_percent','description'];
+              const html = generateItemOptimizationReportFromCsv(rows, columns);
+              addMessage(html, false);
+              return;
+            }
+          }
+
+          // Fallback to chat API if we cannot parse structured input
+          const response = await fetch('/chat/api/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': CSRF_TOKEN
+            },
+            body: `message=${encodeURIComponent(message)}&context=menu_engineering`
+          });
+          const data = await response.json();
+          if (data.error) {
+            addMessage(`❌ Error: ${data.error}`, false);
+          } else if (data.business_report_html) {
+            addMessage(data.business_report_html, false);
+          } else {
+            const text = data.response || '';
+            if (selectedKind && text) {
+              addMessage(wrapTextInReport(selectedKind, text), false);
+            } else {
+              addMessage(text || 'No response', false);
+            }
+          }
+        } catch (error) {
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+      };
+
+      function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = content;
+        const time = document.createElement('div');
+        time.className = 'message-time';
+        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(time);
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }
+
+      function formatProductMixReport(data) {
+        if (!data) return 'No data received';
+        
+        // If business_report_html is available, use it
+        if (data.business_report_html) {
+          return data.business_report_html;
+        }
+        
+        // Otherwise build custom report
+        let html = `<div class="report"><div class="report__header"><h2>🍽️ Comprehensive Menu Performance Review</h2>`;
+        html += `<div class="report__meta">Generated: ${new Date().toLocaleString()}</div>`;
+        if (data.file_info) html += `<div class="report__meta">${data.file_info}</div>`;
+        if (data.performance_rating) {
+          const badgeClass = data.performance_rating.toLowerCase().replace(' ', '-');
+          html += `<div class="badge badge--${badgeClass}">${data.performance_rating}</div>`;
+        }
+        html += `</div><div class="report__body">`;
+        
+        // Metrics Grid
+        if (data.metrics) {
+          html += '<h3 style="color: #667eea; margin-bottom: 1rem;">📊 Key Metrics</h3><div class="kpi-grid">';
+          const m = data.metrics;
+          if (m['Total Menu Items']) html += `<div class="kpi-card"><div class="kpi-value">${m['Total Menu Items']}</div><div class="kpi-label">Menu Items</div></div>`;
+          if (m['Total Revenue']) html += `<div class="kpi-card"><div class="kpi-value">$${m['Total Revenue'].toLocaleString(undefined, {minimumFractionDigits: 2})}</div><div class="kpi-label">Total Revenue</div></div>`;
+          if (m['Total Profit']) html += `<div class="kpi-card"><div class="kpi-value">$${m['Total Profit'].toLocaleString(undefined, {minimumFractionDigits: 2})}</div><div class="kpi-label">Total Profit</div></div>`;
+          if (m['Average Contribution Margin']) html += `<div class="kpi-card"><div class="kpi-value">$${m['Average Contribution Margin'].toFixed(2)}</div><div class="kpi-label">Avg Margin</div></div>`;
+          if (m['Average Food Cost Percent']) html += `<div class="kpi-card"><div class="kpi-value">${m['Average Food Cost Percent'].toFixed(1)}%</div><div class="kpi-label">Avg Food Cost</div></div>`;
+          html += '</div>';
+          
+          // Menu Engineering Matrix
+          html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">🎯 Menu Engineering Matrix</h3><div class="kpi-grid">';
+          const matrixItems = [
+            { label: 'Stars', value: m['Stars'] || 0, icon: '⭐', desc: 'High Profit, High Sales', color: '#10b981' },
+            { label: 'Plowhorses', value: m['Plowhorses'] || 0, icon: '🐴', desc: 'Low Profit, High Sales', color: '#10b981' },
+            { label: 'Puzzles', value: m['Puzzles'] || 0, icon: '🧩', desc: 'High Profit, Low Sales', color: '#3b82f6' },
+            { label: 'Dogs', value: m['Dogs'] || 0, icon: '🐕', desc: 'Low Profit, Low Sales', color: '#ef4444' }
+          ];
+          matrixItems.forEach(item => {
+            html += `<div class="kpi-card" style="border-left: 4px solid ${item.color};">
+              <div class="kpi-value">${item.icon} ${item.value}</div>
+              <div class="kpi-label">${item.label}</div>
+              <div style="font-size: 0.75rem; color: #888; margin-top: 0.25rem;">${item.desc}</div>
+            </div>`;
+          });
+          html += '</div>';
+        }
+        
+        // Recommendations
+        if (data.recommendations && data.recommendations.length > 0) {
+          html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">💡 Strategic Recommendations</h3>';
+          html += '<div style="display: grid; gap: 0.75rem;">';
+          data.recommendations.forEach((rec, idx) => {
+            html += `<div style="background: rgba(102, 126, 234, 0.1); border-radius: 0.5rem; padding: 1rem; border-left: 4px solid #667eea;">
+              <strong style="color: #667eea;">${idx + 1}.</strong> ${rec}
+            </div>`;
+          });
+          html += '</div>';
+        }
+        
+        // Top Items Table
+        if (data.pmix_report && data.pmix_report.length > 0) {
+          const topItems = data.pmix_report.slice(0, 10);
+          html += '<h3 style="color: #667eea; margin: 1.5rem 0 1rem;">🏆 Top ' + topItems.length + ' Items by Profit</h3>';
+          html += '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">';
+          html += '<thead><tr style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">';
+          html += '<th style="padding: 0.75rem; text-align: left;">Item</th>';
+          html += '<th style="padding: 0.75rem; text-align: right;">Qty Sold</th>';
+          html += '<th style="padding: 0.75rem; text-align: right;">Price</th>';
+          html += '<th style="padding: 0.75rem; text-align: right;">Cost</th>';
+          html += '<th style="padding: 0.75rem; text-align: right;">Margin</th>';
+          html += '<th style="padding: 0.75rem; text-align: right;">Total Profit</th>';
+          html += '</tr></thead><tbody>';
+          
+          topItems.forEach((item, idx) => {
+            const rowBg = idx % 2 === 0 ? 'rgba(102, 126, 234, 0.05)' : 'transparent';
+            html += `<tr style="background: ${rowBg}; border-bottom: 1px solid rgba(102, 126, 234, 0.1);">`;
+            html += `<td style="padding: 0.75rem; font-weight: 500;">${item.name}</td>`;
+            html += `<td style="padding: 0.75rem; text-align: right;">${item.quantity_sold}</td>`;
+            html += `<td style="padding: 0.75rem; text-align: right;">$${item.price?.toFixed(2)}</td>`;
+            html += `<td style="padding: 0.75rem; text-align: right;">$${item.cost?.toFixed(2)}</td>`;
+            html += `<td style="padding: 0.75rem; text-align: right;">$${item.contribution_margin?.toFixed(2)}</td>`;
+            html += `<td style="padding: 0.75rem; text-align: right; font-weight: 600; color: #10b981;">$${item.total_profit?.toFixed(2)}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody></table></div>';
+          
+          if (data.pmix_report.length > 10) {
+            html += `<p style="text-align: center; color: #888; margin-top: 0.5rem;">Showing top 10 of ${data.pmix_report.length} items</p>`;
+          }
+        }
+        
+        // Cost info
+        if (data.cost_info) {
+          html += `<p style="margin-top: 1rem; font-size: 0.875rem; color: #888;"><em>📝 Note: Costs ${data.cost_info}</em></p>`;
+        }
+        
+        html += '</div></div>';
+        return html;
+      }
+
+      window.clearChat = function() {
+        messagesArea.innerHTML = `
+          <div class="message assistant">
+            <div class="message-bubble">Welcome to Menu Engineering! <strong>Provide data</strong> or click a card for examples:<br><br>
+              <strong>📊 Product Mix (Menu Analysis):</strong><br>
+              • Required: item_name | product_name | Menu Item; quantity_sold | quantity | Units Sold; price | unit_price | Price<br>
+              • Optional: cost | Food Cost % | Contribution Margin %, revenue, profit, category<br><br>
+              <strong>💰 Pricing Strategy:</strong><br>
+              • Required: item_name, item_price | price, item_cost | cost, competitor_price<br>
+              • Optional: target_food_cost_percent, elasticity_index<br><br>
+              <strong>🛠️ Item Optimization:</strong><br>
+              • Required: item_name, quantity_sold, item_cost | cost<br>
+              • Optional: portion_size, portion_cost, recipe_ingredients, description, waste_percent</div>
+            <div class="message-time">Just now</div>
+          </div>
+        `;
+      };
+
+      // HTML response templates
+      function renderMenuAnalysisTemplate() {
+        return `
+          <div class="report"><div class="report__header"><h2>🍽️ Comprehensive Menu Performance Review</h2>
+          <div class="report__meta">Sales mix analysis • Contribution margins • Menu matrix mapping</div></div>
+          <div class="report__body">
+            <h3 style="color:#667eea;">What You'll Get</h3>
+            <ul style="margin:0 0 1rem 1rem; color:#555;">
+              <li>Item-level sales, revenue, and profit distribution</li>
+              <li>Contribution margins and food cost % across items</li>
+              <li>Quadrant map: Stars, Plowhorses, Puzzles, Dogs</li>
+              <li>Clear, prioritized recommendations</li>
+            </ul>
+            <h3 style="color:#667eea;">📊 Sales Mix Analysis</h3>
+            <p>Breakdown of volume and revenue by item and category.</p>
+            <h3 style="color:#667eea;">💵 Contribution Margins</h3>
+            <p>Price vs cost per item, gross margin, and food cost %.</p>
+            <h3 style="color:#667eea;">🎯 Menu Matrix Mapping</h3>
+            <p>Stars, Plowhorses, Puzzles, Dogs distribution with recommendations.</p>
+          </div></div>`;
+      }
+
+      function renderPricingStrategyTemplate() {
+        return `
+          <div class="report"><div class="report__header"><h2>💰 Data-Driven Pricing Optimization</h2>
+          <div class="report__meta">Price elasticity • Competitive analysis • Profit maximization</div></div>
+          <div class="report__body">
+            <h3 style="color:#10b981;">What You'll Get</h3>
+            <ul style="margin:0 0 1rem 1rem; color:#555;">
+              <li>Underpriced and overpriced item detection</li>
+              <li>Competitive gap and anchor opportunities</li>
+              <li>Target food cost alignment and adjustments</li>
+              <li>Actionable recommendations to maximize profit</li>
+            </ul>
+            <h3 style="color:#10b981;">📈 Price Elasticity</h3>
+            <p>Modeled volume impact from price changes to optimize revenue.</p>
+            <h3 style="color:#10b981;">🏁 Competitive Analysis</h3>
+            <p>Positioning vs competitor pricing and anchor strategies.</p>
+            <h3 style="color:#10b981;">💹 Profit Maximization</h3>
+            <p>Identify underpriced/overpriced items and calculate opportunity.</p>
+          </div></div>`;
+      }
+
+      function renderItemOptimizationTemplate() {
+        return `
+          <div class="report"><div class="report__header"><h2>🛠️ Improve Underperforming Items</h2>
+          <div class="report__meta">Recipe costing • Portion control • Description optimization</div></div>
+          <div class="report__body">
+            <h3 style="color:#10b981;">What You'll Get</h3>
+            <ul style="margin:0 0 1rem 1rem; color:#555;">
+              <li>Cost drivers and portion standardization opportunities</li>
+              <li>Waste hotspots and action items</li>
+              <li>Menu description improvements to boost conversion</li>
+            </ul>
+            <h3 style="color:#10b981;">📋 Recipe Costing</h3>
+            <p>Ingredient breakdowns to reduce cost while maintaining quality.</p>
+            <h3 style="color:#10b981;">⚖️ Portion Control</h3>
+            <p>Standardize portion sizes to stabilize margins and consistency.</p>
+            <h3 style="color:#10b981;">📝 Description Optimization</h3>
+            <p>Enhance menu language to boost appeal and conversion.</p>
+          </div></div>`;
+      }
+
+      function wrapTextInReport(kind, text) {
+        let base = '';
+        if (kind === 'menu') base = renderMenuAnalysisTemplate();
+        else if (kind === 'pricing') base = renderPricingStrategyTemplate();
+        else base = renderItemOptimizationTemplate();
+        // Insert assistant text inside a section after the header/body
+        return base.replace('</div></div>', `
+          <div class="report__body" style="margin-top:0.5rem">
+            <h3 style="color:#667eea;">Assistant Insights</h3>
+            <div style="background: rgba(0,0,0,0.03); border:1px solid rgba(0,0,0,0.06); border-radius:0.5rem; padding:0.75rem; white-space:pre-wrap;">${text}</div>
+          </div></div>`);
+      }
+
+      // Build comprehensive example prompts (text and html) per card
+      function buildAnalysisPromptText(kind) {
+        if (kind === 'menu') {
+          return [
+            'Analyze my menu analysis.',
+            'Item: Chicken Biryani. Quantity Sold: 125. Price: $19.00. Cost: $6.20. Revenue: $2,375.00. Profit: $1,580.00. Category: Entrees. Food Cost %: 32.6%. Contribution Margin %: 67.4%.',
+            'Include: Sales mix analysis; Contribution margins; Menu matrix mapping.'
+          ].join('\n');
+        }
+        if (kind === 'pricing') {
+          return [
+            'Analyze my pricing strategy.',
+            'Item: Margherita Pizza. Item Price: $18.00. Item Cost: $5.50. Competitor Price: $16.00. Target Food Cost Percent: 32%. Elasticity Index: 1.2. Category: Pizza.',
+            'Focus on: Price elasticity; Competitive analysis; Profit maximization.'
+          ].join('\n');
+        }
+        // optimization
+        return [
+          'Analyze my item optimization.',
+          'Item: Veggie Wrap. Quantity Sold: 12. Item Cost: $3.50. Portion Size: 220g. Portion Cost: $1.20. Waste Percent: 8%. Recipe Ingredients: Spinach wrap; seasonal vegetables; dressing. Description: Fresh seasonal vegetables in a spinach wrap.',
+          'Include: Recipe costing; Portion control; Description optimization.'
+        ].join('\n');
+      }
+
+      // Remove confirm button behavior; fill input only and wait for Send
+
+      // Quick action handlers: only insert example prompt, no auto-send, no auto-output
+      window.analyzeMenu = () => {
+        selectedKind = 'menu';
+        chatInput.value = buildAnalysisPromptText('menu');
+        chatInput.focus();
+      };
+
+      window.pricingStrategy = () => {
+        selectedKind = 'pricing';
+        chatInput.value = buildAnalysisPromptText('pricing');
+        chatInput.focus();
+      };
+
+      window.itemOptimization = () => {
+        selectedKind = 'optimization';
+        chatInput.value = buildAnalysisPromptText('optimization');
+        chatInput.focus();
+      };
+    });
+  </script>
+</body>
+</html>

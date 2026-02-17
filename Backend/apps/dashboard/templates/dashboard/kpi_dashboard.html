@@ -1,0 +1,549 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KPI Dashboard - Restaurant Consulting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modern-glass.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Enhanced KPI Dashboard Styles */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-lg);
+      margin-bottom: var(--spacing-2xl);
+    }
+    @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    
+    .metric-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--primary-gradient);
+      background-size: 200% 100%;
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(102, 126, 234, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .metric-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 
+        0 25px 50px rgba(102, 126, 234, 0.2),
+        0 0 0 1px rgba(102, 126, 234, 0.1);
+    }
+    .metric-card.good::before { background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7); background-size: 200% 100%; }
+    .metric-card.warning::before { background: linear-gradient(135deg, #f59e0b, #fbbf24, #fcd34d); background-size: 200% 100%; }
+    .metric-card.alert::before { background: linear-gradient(135deg, #ef4444, #f87171, #fca5a5); background-size: 200% 100%; }
+    
+    .metric-label { 
+      font-size: 0.8rem; 
+      color: var(--text-tertiary); 
+      text-transform: uppercase; 
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+    .metric-value { 
+      font-size: 2.75rem; 
+      font-weight: 800; 
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0.5rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    .metric-card.good .metric-value {
+      background: linear-gradient(135deg, #10b981, #059669);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .metric-card.warning .metric-value {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .metric-card.alert .metric-value {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .metric-change { 
+      font-size: 0.875rem; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.35rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+    .metric-change.positive { color: #10b981; }
+    .metric-change.negative { color: #ef4444; }
+    
+    .chart-container {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    .chart-container:hover {
+      box-shadow: 0 8px 30px rgba(102, 126, 234, 0.12);
+    }
+    .chart-title { 
+      font-size: 1.2rem; 
+      font-weight: 700; 
+      margin-bottom: var(--spacing-lg); 
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+    .chart-title::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: var(--primary-gradient);
+      border-radius: 2px;
+    }
+    
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-lg);
+    }
+    @media (max-width: 992px) { .charts-row { grid-template-columns: 1fr; } }
+
+    .quick-stats {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+    }
+    .quick-stat {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      border-radius: var(--radius-full);
+      padding: 0.6rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .quick-stat:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.12);
+    }
+    .quick-stat-dot { 
+      width: 10px; 
+      height: 10px; 
+      border-radius: 50%;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .quick-stat-dot.green { background: #10b981; color: rgba(16, 185, 129, 0.5); }
+    .quick-stat-dot.yellow { background: #f59e0b; color: rgba(245, 158, 11, 0.5); }
+    .quick-stat-dot.red { background: #ef4444; color: rgba(239, 68, 68, 0.5); }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  <div class="floating-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-circle" aria-hidden="true">C</div>
+        <div class="brand-text">
+          <div class="company-name">Curated Restaurant Consulting</div>
+          <div class="company-tagline">Driven by Data. Crafted for Excellence.</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <select id="date-range" class="date-range-select" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 0.5rem 1rem; color: var(--text-primary); cursor: pointer;">
+          <option value="7">Last 7 Days</option>
+          <option value="30" selected>Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+          <option value="365">Last Year</option>
+        </select>
+        <a href="/dashboard/" class="back-button">← Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="glass-interface">
+      <!-- Page Header -->
+      <section class="page-header">
+        <h1 class="page-title">KPI Dashboard</h1>
+        <p class="page-subtitle">Real-time performance metrics and analytics for your restaurant operations</p>
+      </section>
+
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="quick-stat"><span class="quick-stat-dot green"></span> 4 KPIs On Target</div>
+        <div class="quick-stat"><span class="quick-stat-dot yellow"></span> 2 KPIs Need Attention</div>
+        <div class="quick-stat"><span class="quick-stat-dot red"></span> 1 KPI Critical</div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="dashboard-grid">
+        <div class="metric-card good">
+          <div class="metric-label">Revenue</div>
+          <div class="metric-value" id="revenue-value">$0</div>
+          <div class="metric-change positive" id="revenue-change">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+            <span>+12.5% vs last period</span>
+          </div>
+        </div>
+
+        <div class="metric-card warning">
+          <div class="metric-label">Labor Cost %</div>
+          <div class="metric-value" id="labor-cost-value">0%</div>
+          <div class="metric-change negative" id="labor-change">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+            <span>+2.3% vs target</span>
+          </div>
+        </div>
+
+        <div class="metric-card good">
+          <div class="metric-label">Food Cost %</div>
+          <div class="metric-value" id="food-cost-value">0%</div>
+          <div class="metric-change positive" id="food-change">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+            <span>-1.8% vs target</span>
+          </div>
+        </div>
+
+        <div class="metric-card good">
+          <div class="metric-label">Prime Cost %</div>
+          <div class="metric-value" id="prime-cost-value">0%</div>
+          <div class="metric-change positive" id="prime-change">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+            <span>On target</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="chart-container">
+          <div class="chart-title">Revenue Trend</div>
+          <canvas id="revenueChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title">Cost Distribution</div>
+          <canvas id="costChart"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-container">
+          <div class="chart-title">Weekly Performance</div>
+          <canvas id="weeklyChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title">KPI Comparison</div>
+          <canvas id="kpiChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chat Section -->
+      <section class="chat-section">
+        <div class="chat-header">
+          <h3 class="chat-title">AI Insights</h3>
+          <button class="clear-chat" onclick="clearChat()">Clear</button>
+        </div>
+
+        <div class="messages-area" id="messages-area">
+          <div class="message assistant">
+            <div class="message-bubble">Welcome to your KPI Dashboard! <strong>To get comprehensive analysis, provide your data</strong>:<br><br>
+              <strong>📊 Comprehensive Analysis:</strong><br>
+              • Required: total_sales, labor_cost, food_cost, prime_cost<br>
+              • Optional: hours_worked, hourly_rate, previous_sales, target_margin<br><br>
+              <strong>🎯 Performance Optimization:</strong><br>
+              • Required: current_performance, target_performance, optimization_potential, efficiency_score<br>
+              • Optional: baseline_metrics, improvement_rate, goal_timeframe, progress_tracking<br><br>
+              Example: "Run comprehensive analysis. Total sales: $50,000. Labor cost: $15,000. Food cost: $14,000. Prime cost: $29,000."</div>
+            <div class="message-time">Just now</div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-container">
+            <textarea id="chat-input" class="chat-input" placeholder="Ask about your KPIs..." rows="1"></textarea>
+            <button class="send-button" onclick="sendMessage()">
+              <span>Ask</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize metrics with sample data
+      document.getElementById('revenue-value').textContent = '$124,580';
+      document.getElementById('labor-cost-value').textContent = '32.4%';
+      document.getElementById('food-cost-value').textContent = '28.2%';
+      document.getElementById('prime-cost-value').textContent = '60.6%';
+
+      // Revenue Chart
+      new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+          datasets: [{
+            label: 'Revenue',
+            data: [28500, 31200, 30800, 34080],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.1)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Cost Chart
+      const costCtx = document.getElementById('costChart');
+      window.costChartInstance = new Chart(costCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Labor', 'Food', 'Overhead', 'Profit'],
+          datasets: [{
+            data: [32.4, 28.2, 22.4, 17],
+            backgroundColor: ['#667eea', '#764ba2', '#f59e0b', '#10b981'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+
+      // Weekly Chart
+      new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'Sales',
+            data: [3200, 2800, 3100, 3400, 4200, 5100, 4800],
+            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // KPI Chart
+      new Chart(document.getElementById('kpiChart'), {
+        type: 'radar',
+        data: {
+          labels: ['Labor', 'Food', 'Beverage', 'RevPASH', 'Turnover', 'Satisfaction'],
+          datasets: [{
+            label: 'Current',
+            data: [75, 82, 78, 88, 70, 92],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.2)'
+          }, {
+            label: 'Target',
+            data: [80, 80, 80, 85, 80, 90],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.2)'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { r: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } } }
+        }
+      });
+
+      // Chat functionality
+      const messagesArea = document.getElementById('messages-area');
+      const chatInput = document.getElementById('chat-input');
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
+      }
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      // Helpers: parsing and formatting for comprehensive analysis
+      function parseCurrencyToNumber(value) {
+        if (!value) return NaN;
+        const n = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+        return isNaN(n) ? NaN : n;
+      }
+
+      function formatCurrency(n) {
+        return `$${Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+      }
+
+      function formatPercent(n) {
+        return `${Number(n).toFixed(1)}%`;
+      }
+
+      function extractKPIData(message) {
+        const patterns = {
+          sales: /(total\s*sales|sales)\s*:\s*([^\n]+)/i,
+          labor: /(labor\s*cost|labor)\s*:\s*([^\n]+)/i,
+          food: /(food\s*cost|food)\s*:\s*([^\n]+)/i,
+          prime: /(prime\s*cost|prime)\s*:\s*([^\n]+)/i,
+        };
+        const out = {};
+        for (const [key, rx] of Object.entries(patterns)) {
+          const match = message.match(rx);
+          if (match && match[2]) {
+            const v = parseCurrencyToNumber(match[2]);
+            if (!isNaN(v)) out[key] = v;
+          }
+        }
+        return out;
+      }
+
+      function updateKPIMetrics(kpi) {
+        const sales = kpi.sales;
+        const labor = kpi.labor;
+        const food = kpi.food;
+        const prime = typeof kpi.prime === 'number' ? kpi.prime : (labor + food);
+        if (![sales, labor, food].every(v => typeof v === 'number' && !isNaN(v))) return false;
+
+        const laborPct = (labor / sales) * 100;
+        const foodPct = (food / sales) * 100;
+        const primePct = (prime / sales) * 100;
+        const profit = sales - prime;
+        const profitPct = (profit / sales) * 100;
+        const overheadPct = Math.max(0, 100 - (laborPct + foodPct + profitPct));
+
+        // Update cards
+        document.getElementById('revenue-value').textContent = formatCurrency(sales);
+        document.getElementById('labor-cost-value').textContent = formatPercent(laborPct);
+        document.getElementById('food-cost-value').textContent = formatPercent(foodPct);
+        document.getElementById('prime-cost-value').textContent = formatPercent(primePct);
+
+        // Update Cost Distribution chart if present
+        if (window.costChartInstance) {
+          window.costChartInstance.data.datasets[0].data = [laborPct, foodPct, overheadPct, profitPct];
+          window.costChartInstance.update();
+        }
+
+        // Add summarized analysis message
+        const summary = [
+          `<strong>Comprehensive Analysis</strong>`,
+          `Sales: ${formatCurrency(sales)}`,
+          `Labor: ${formatCurrency(labor)} (${formatPercent(laborPct)})`,
+          `Food: ${formatCurrency(food)} (${formatPercent(foodPct)})`,
+          `Prime: ${formatCurrency(prime)} (${formatPercent(primePct)})`,
+          `Gross profit (after food): ${formatCurrency(sales - food)} (${formatPercent(((sales - food) / sales) * 100)})`,
+          `Net after prime: ${formatCurrency(profit)} (${formatPercent(profitPct)})`
+        ].join('<br>');
+        addMessage(summary, false);
+        return true;
+      }
+
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      window.sendMessage = async function() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+
+        // Local comprehensive analysis: supports $-prefixed amounts
+        if (/run\s+comprehensive\s+analysis/i.test(message)) {
+          const kpi = extractKPIData(message);
+          updateKPIMetrics(kpi);
+        }
+
+        try {
+          const response = await fetch('/chat/api/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF_TOKEN },
+            body: `message=${encodeURIComponent(message)}&context=kpi_dashboard`
+          });
+          const data = await response.json();
+          addMessage(data.response || 'No response', false);
+        } catch (error) {
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+      };
+
+      function addMessage(content, isUser) {
+        const div = document.createElement('div');
+        div.className = `message ${isUser ? 'user' : 'assistant'}`;
+        div.innerHTML = `<div class="message-bubble">${content}</div><div class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>`;
+        messagesArea.appendChild(div);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }
+
+      window.clearChat = function() {
+        messagesArea.innerHTML = '<div class="message assistant"><div class="message-bubble">Welcome to your KPI Dashboard! I\'ve analyzed your current metrics. Ask me about trends, recommendations, or how to improve specific KPIs.</div><div class="message-time">Just now</div></div>';
+      };
+    });
+  </script>
+</body>
+</html>

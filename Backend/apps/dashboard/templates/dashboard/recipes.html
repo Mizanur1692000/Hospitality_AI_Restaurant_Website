@@ -1,0 +1,775 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recipes - Restaurant Consulting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'dashboard/css/modern-glass.css' %}">
+  <style>
+    /* Enhanced Recipe Management Styles */
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--spacing-lg);
+      margin: var(--spacing-xl) 0;
+    }
+    .recipe-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: card-reveal 0.5s ease-out forwards;
+      opacity: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+    .recipe-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .recipe-card:hover::before {
+      transform: scaleX(1);
+    }
+    .recipe-card:nth-child(1) { animation-delay: 0.1s; }
+    .recipe-card:nth-child(2) { animation-delay: 0.15s; }
+    .recipe-card:nth-child(3) { animation-delay: 0.2s; }
+    .recipe-card:nth-child(4) { animation-delay: 0.25s; }
+    .recipe-card:nth-child(5) { animation-delay: 0.3s; }
+    .recipe-card:nth-child(6) { animation-delay: 0.35s; }
+    
+    .recipe-card:hover {
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 
+        0 30px 60px rgba(102, 126, 234, 0.25),
+        0 0 0 1px rgba(102, 126, 234, 0.15);
+    }
+    .recipe-image {
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .recipe-image::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .recipe-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
+    }
+    .recipe-image svg { 
+      width: 72px; 
+      height: 72px; 
+      color: rgba(255,255,255,0.25);
+      transition: all 0.4s ease;
+    }
+    .recipe-card:hover .recipe-image svg {
+      transform: scale(1.15) rotate(10deg);
+      color: rgba(255,255,255,0.4);
+    }
+    .recipe-category {
+      position: absolute;
+      top: var(--spacing-md);
+      right: var(--spacing-md);
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(12px);
+      padding: 0.35rem 0.875rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      z-index: 1;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .recipe-content { padding: var(--spacing-xl); }
+    .recipe-name { 
+      font-size: 1.2rem; 
+      font-weight: 700; 
+      color: var(--text-primary); 
+      margin-bottom: 0.6rem;
+      transition: color 0.3s;
+    }
+    .recipe-card:hover .recipe-name {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .recipe-desc { 
+      font-size: 0.9rem; 
+      color: var(--text-secondary); 
+      margin-bottom: var(--spacing-lg); 
+      line-height: 1.6;
+    }
+    .recipe-stats {
+      display: flex;
+      gap: var(--spacing-md);
+      padding-top: var(--spacing-lg);
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    .recipe-stat { 
+      text-align: center; 
+      flex: 1;
+      padding: var(--spacing-sm);
+      background: rgba(102, 126, 234, 0.04);
+      border-radius: var(--radius-md);
+      transition: all 0.3s;
+    }
+    .recipe-stat:hover {
+      background: rgba(102, 126, 234, 0.08);
+    }
+    .recipe-stat-value { 
+      font-size: 1.1rem; 
+      font-weight: 700; 
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .recipe-stat-label { 
+      font-size: 0.7rem; 
+      color: var(--text-tertiary); 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.25rem;
+    }
+    
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-xl);
+    }
+    .filter-btn {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 1px solid rgba(102, 126, 234, 0.15);
+      border-radius: var(--radius-full);
+      padding: 0.6rem 1.25rem;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .filter-btn:hover {
+      border-color: #667eea;
+      color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+    }
+    .filter-btn.active {
+      background: var(--primary-gradient);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .search-bar {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+      border: 2px solid rgba(102, 126, 234, 0.12);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-md) var(--spacing-lg);
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .search-bar:focus-within {
+      border-color: #667eea;
+      box-shadow: 
+        0 8px 30px rgba(102, 126, 234, 0.12),
+        0 0 0 4px rgba(102, 126, 234, 0.08);
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1rem;
+      outline: none;
+    }
+    .search-bar input::placeholder { color: var(--text-tertiary); }
+    .search-bar button {
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.5rem 1rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg"></div>
+  <div class="floating-orbs">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-circle" aria-hidden="true">C</div>
+        <div class="brand-text">
+          <div class="company-name">Curated Restaurant Consulting</div>
+          <div class="company-tagline">Driven by Data. Crafted for Excellence.</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="/dashboard/" class="back-button">← Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div class="glass-interface">
+      <!-- Page Header -->
+      <section class="page-header">
+        <h1 class="page-title">Recipe Management</h1>
+        <p class="page-subtitle">Create, optimize, and cost your recipes with AI-powered assistance</p>
+
+        <!-- Core Tasks Grid -->
+        <div class="core-tasks-grid">
+          <!-- Create Recipe -->
+          <div class="core-task-card" onclick="createRecipe()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="20" cy="20" r="16" stroke="white" stroke-width="2"/>
+                <path d="M20 12V28M12 20H28" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="task-title">Create Recipe</div>
+            <div class="task-desc">Build new recipes with AI assistance</div>
+            <ul class="task-features">
+              <li>Ingredient suggestions</li>
+              <li>Auto-costing</li>
+              <li>Nutrition analysis</li>
+            </ul>
+          </div>
+
+          <!-- Cost Analysis -->
+          <div class="core-task-card" onclick="costAnalysis()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <circle cx="20" cy="20" r="16" stroke="white" stroke-width="2"/>
+                <path d="M20 10V30" stroke="white" stroke-width="2"/>
+                <path d="M14 14C14 14 16 12 20 12C24 12 26 14 26 16C26 18 24 20 20 20C16 20 14 22 14 24C14 26 16 28 20 28C24 28 26 26 26 26" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Cost Analysis</div>
+            <div class="task-desc">Track recipe costs and margins</div>
+            <ul class="task-features">
+              <li>Ingredient costs</li>
+              <li>Margin calculator</li>
+              <li>Price recommendations</li>
+            </ul>
+          </div>
+
+          <!-- Scale Recipes -->
+          <div class="core-task-card" onclick="scaleRecipe()">
+            <div class="task-icon">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                <rect x="6" y="6" width="12" height="12" rx="2" stroke="white" stroke-width="2"/>
+                <rect x="22" y="22" width="12" height="12" rx="2" stroke="white" stroke-width="2"/>
+                <path d="M18 12H28V18M12 22V28H22" stroke="white" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="task-title">Scale Recipes</div>
+            <div class="task-desc">Adjust portions and batch sizes</div>
+            <ul class="task-features">
+              <li>Batch scaling</li>
+              <li>Unit conversion</li>
+              <li>Yield optimization</li>
+            </ul>
+          </div>
+          <div id="analysis-confirm" style="display:none; margin-top:0.75rem;">
+            <!-- Confirmation UI injected here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-secondary);">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input type="text" id="recipe-search" placeholder="Search recipes by name, ingredient, or category...">
+        <button onclick="searchRecipes()">
+          <span>Search</span>
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-bar">
+        <button class="filter-btn active" data-filter="all">All Recipes</button>
+        <button class="filter-btn" data-filter="appetizers">Appetizers</button>
+        <button class="filter-btn" data-filter="mains">Main Courses</button>
+        <button class="filter-btn" data-filter="desserts">Desserts</button>
+        <button class="filter-btn" data-filter="beverages">Beverages</button>
+        <button class="filter-btn" data-filter="sauces">Sauces</button>
+      </div>
+
+      <!-- Recipe Grid -->
+      <div class="recipe-grid" id="recipe-grid">
+        <!-- Sample Recipe Cards -->
+        <div class="recipe-card" data-category="mains">
+          <div class="recipe-image">
+            <span class="recipe-category">Main Course</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="recipe-content">
+            <div class="recipe-name">Grilled Salmon</div>
+            <div class="recipe-desc">Pan-seared Atlantic salmon with lemon butter sauce and seasonal vegetables</div>
+            <div class="recipe-stats">
+              <div class="recipe-stat"><div class="recipe-stat-value">$8.50</div><div class="recipe-stat-label">Cost</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">$24.00</div><div class="recipe-stat-label">Price</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">65%</div><div class="recipe-stat-label">Margin</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-category="appetizers">
+          <div class="recipe-image">
+            <span class="recipe-category">Appetizer</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="recipe-content">
+            <div class="recipe-name">Truffle Bruschetta</div>
+            <div class="recipe-desc">Toasted ciabatta with truffle oil, heirloom tomatoes, and fresh basil</div>
+            <div class="recipe-stats">
+              <div class="recipe-stat"><div class="recipe-stat-value">$3.20</div><div class="recipe-stat-label">Cost</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">$12.00</div><div class="recipe-stat-label">Price</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">73%</div><div class="recipe-stat-label">Margin</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-category="mains">
+          <div class="recipe-image">
+            <span class="recipe-category">Main Course</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="recipe-content">
+            <div class="recipe-name">Ribeye Steak</div>
+            <div class="recipe-desc">12oz prime ribeye with herb butter, roasted potatoes, and asparagus</div>
+            <div class="recipe-stats">
+              <div class="recipe-stat"><div class="recipe-stat-value">$14.50</div><div class="recipe-stat-label">Cost</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">$42.00</div><div class="recipe-stat-label">Price</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">66%</div><div class="recipe-stat-label">Margin</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-category="desserts">
+          <div class="recipe-image">
+            <span class="recipe-category">Dessert</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="recipe-content">
+            <div class="recipe-name">Chocolate Lava Cake</div>
+            <div class="recipe-desc">Warm chocolate cake with molten center, vanilla ice cream, and raspberry coulis</div>
+            <div class="recipe-stats">
+              <div class="recipe-stat"><div class="recipe-stat-value">$2.80</div><div class="recipe-stat-label">Cost</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">$11.00</div><div class="recipe-stat-label">Price</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">75%</div><div class="recipe-stat-label">Margin</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-category="sauces">
+          <div class="recipe-image">
+            <span class="recipe-category">Sauce</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="recipe-content">
+            <div class="recipe-name">Béarnaise Sauce</div>
+            <div class="recipe-desc">Classic French sauce with tarragon, shallots, and clarified butter</div>
+            <div class="recipe-stats">
+              <div class="recipe-stat"><div class="recipe-stat-value">$1.20</div><div class="recipe-stat-label">Cost</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">$3.00</div><div class="recipe-stat-label">Price</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">60%</div><div class="recipe-stat-label">Margin</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-card" data-category="beverages">
+          <div class="recipe-image">
+            <span class="recipe-category">Beverage</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="recipe-content">
+            <div class="recipe-name">Signature Mojito</div>
+            <div class="recipe-desc">Fresh mint, lime, white rum, and house-made simple syrup</div>
+            <div class="recipe-stats">
+              <div class="recipe-stat"><div class="recipe-stat-value">$2.50</div><div class="recipe-stat-label">Cost</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">$12.00</div><div class="recipe-stat-label">Price</div></div>
+              <div class="recipe-stat"><div class="recipe-stat-value">79%</div><div class="recipe-stat-label">Margin</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Section -->
+      <section class="chat-section">
+        <div class="chat-header">
+          <h3 class="chat-title">Recipe AI Assistant</h3>
+          <button class="clear-chat" onclick="clearChat()">Clear Chat</button>
+        </div>
+
+        <div class="messages-area" id="messages-area">
+          <div class="message assistant">
+            <div class="message-bubble">Welcome to Recipe Management! I can help you create new recipes, calculate costs, scale portions, and optimize your portfolio.<br><br><strong>For accurate analysis, upload a CSV</strong> with columns like:<br>- recipe_name, ingredient_cost, labor_cost (optional), total_cost (optional), recipe_price, servings (optional), portion_size (optional).<br><br>Then ask questions like:<br>- “Calculate food cost and margins for my recipes”<br>- “Which recipes need pricing review?”<br>- “Suggest price updates to hit 70% margin”.</div>
+            <div class="message-time">Just now</div>
+          </div>
+        </div>
+
+        <div class="input-section">
+          <div class="input-container">
+            <textarea id="chat-input" class="chat-input" placeholder="Describe a recipe or ask for help..." rows="1"></textarea>
+            <input type="file" id="file-input" accept=".csv,.xlsx,.pdf" class="file-input"/>
+            <button id="upload-button" class="upload-button" title="Upload recipe file">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+              </svg>
+            </button>
+            <button id="send-button" class="send-button" onclick="sendMessage()">
+              <span>Send</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const messagesArea = document.getElementById('messages-area');
+      const chatInput = document.getElementById('chat-input');
+      const fileInput = document.getElementById('file-input');
+      const uploadButton = document.getElementById('upload-button');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const recipeCards = document.querySelectorAll('.recipe-card');
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return null;
+      }
+      const CSRF_TOKEN = getCookie('csrftoken');
+
+      // Filter functionality
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const filter = this.dataset.filter;
+          
+          recipeCards.forEach(card => {
+            if (filter === 'all' || card.dataset.category === filter) {
+              card.style.display = 'block';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+
+      chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      });
+
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      uploadButton.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        addMessage(`📁 Uploading: ${file.name}`, true);
+        
+        const formData = new FormData();
+        formData.append('task', 'recipe_management');
+        formData.append('file', file);
+
+        try {
+          const response = await fetch('/api/agent/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            body: formData
+          });
+          const data = await response.json();
+          
+          if (data.error) {
+            addMessage(`❌ Error: ${data.error}`, false);
+          } else if (data.status === 'success') {
+            // Format recipe analysis report
+            const formattedReport = formatRecipeReport(data);
+            addMessage(formattedReport, false);
+          } else if (data.message) {
+            addMessage(`❌ ${data.message}`, false);
+          } else {
+            addMessage(JSON.stringify(data, null, 2), false);
+          }
+        } catch (error) {
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+        fileInput.value = '';
+      });
+
+      // Format Recipe Analysis Report
+      function formatRecipeReport(data) {
+        let html = '<div class="recipe-analysis-report">';
+        
+        // Header
+        html += '<h3 style="color: var(--accent-primary); margin-bottom: 1rem;">📊 Recipe Portfolio Analysis</h3>';
+        
+        // Summary Section
+        if (data.summary) {
+          const s = data.summary;
+          html += '<div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">';
+          html += '<h4 style="margin-bottom: 0.5rem;">📋 Portfolio Summary</h4>';
+          html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem;">';
+          html += `<div><strong>Total Recipes:</strong> ${s.total_recipes || 'N/A'}</div>`;
+          html += `<div><strong>Avg Food Cost:</strong> ${s.avg_food_cost_percent || 'N/A'}</div>`;
+          html += `<div><strong>Avg Margin:</strong> ${s.avg_profit_margin || 'N/A'}</div>`;
+          html += `<div><strong>Profitable:</strong> ${s.profitable_recipes || 0} recipes</div>`;
+          html += `<div><strong>Needs Review:</strong> ${s.needs_review || 0} recipes</div>`;
+          html += '</div></div>';
+        }
+        
+        // Top Performers
+        if (data.top_performers && data.top_performers.length > 0) {
+          html += '<div style="margin-bottom: 1rem;">';
+          html += '<h4 style="color: #10b981; margin-bottom: 0.5rem;">⭐ Top Performers</h4>';
+          html += '<table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">';
+          html += '<tr style="background: rgba(16, 185, 129, 0.1);"><th style="padding: 0.5rem; text-align: left;">Recipe</th><th>Cost/Serving</th><th>Price</th><th>Margin</th><th>Status</th></tr>';
+          data.top_performers.forEach(r => {
+            html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">`;
+            html += `<td style="padding: 0.5rem;">${r.recipe_name}</td>`;
+            html += `<td style="text-align: center;">$${r.cost_per_serving}</td>`;
+            html += `<td style="text-align: center;">$${r.recipe_price}</td>`;
+            html += `<td style="text-align: center; color: #10b981;">${r.profit_margin}%</td>`;
+            html += `<td style="text-align: center;"><span style="background: #10b981; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">${r.status}</span></td>`;
+            html += '</tr>';
+          });
+          html += '</table></div>';
+        }
+        
+        // Needs Attention
+        if (data.needs_attention && data.needs_attention.length > 0) {
+          html += '<div style="margin-bottom: 1rem;">';
+          html += '<h4 style="color: #f59e0b; margin-bottom: 0.5rem;">⚠️ Needs Attention</h4>';
+          html += '<table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">';
+          html += '<tr style="background: rgba(245, 158, 11, 0.1);"><th style="padding: 0.5rem; text-align: left;">Recipe</th><th>Cost/Serving</th><th>Price</th><th>Margin</th><th>Status</th></tr>';
+          data.needs_attention.forEach(r => {
+            html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">`;
+            html += `<td style="padding: 0.5rem;">${r.recipe_name}</td>`;
+            html += `<td style="text-align: center;">$${r.cost_per_serving}</td>`;
+            html += `<td style="text-align: center;">$${r.recipe_price}</td>`;
+            html += `<td style="text-align: center; color: #f59e0b;">${r.profit_margin}%</td>`;
+            html += `<td style="text-align: center;"><span style="background: #f59e0b; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">${r.status}</span></td>`;
+            html += '</tr>';
+          });
+          html += '</table></div>';
+        }
+        
+        // Recommendations
+        if (data.recommendations && data.recommendations.length > 0) {
+          html += '<div style="background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">';
+          html += '<h4 style="margin-bottom: 0.5rem;">💡 Recommendations</h4>';
+          html += '<ul style="margin: 0; padding-left: 1.5rem;">';
+          data.recommendations.forEach(rec => {
+            html += `<li style="margin-bottom: 0.25rem;">${rec}</li>`;
+          });
+          html += '</ul></div>';
+        }
+        
+        // AI Analysis
+        if (data.ai_analysis && !data.ai_analysis.startsWith('AI analysis unavailable')) {
+          html += '<div style="background: rgba(139, 92, 246, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">';
+          html += '<h4 style="margin-bottom: 0.5rem;">🤖 AI Strategic Analysis</h4>';
+          html += '<div style="white-space: pre-wrap; font-size: 0.875rem; line-height: 1.6;">' + formatMarkdown(data.ai_analysis) + '</div>';
+          html += '</div>';
+        }
+        
+        // All Recipes Table (collapsible)
+        if (data.recipes && data.recipes.length > 0) {
+          html += '<details style="margin-top: 1rem;">';
+          html += '<summary style="cursor: pointer; color: var(--accent-primary); font-weight: 600;">📋 View All Recipes (' + data.recipes.length + ')</summary>';
+          html += '<table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem;">';
+          html += '<tr style="background: rgba(102, 126, 234, 0.2);"><th style="padding: 0.5rem;">Recipe</th><th>Ingredient</th><th>Labor</th><th>Total</th><th>Price</th><th>Margin</th><th>Status</th></tr>';
+          data.recipes.forEach(r => {
+            const statusColor = r.status === 'Excellent' ? '#10b981' : r.status === 'Good' ? '#3b82f6' : r.status === 'Acceptable' ? '#f59e0b' : '#ef4444';
+            html += `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">`;
+            html += `<td style="padding: 0.5rem;">${r.recipe_name}</td>`;
+            html += `<td style="text-align: center;">$${r.ingredient_cost}</td>`;
+            html += `<td style="text-align: center;">$${r.labor_cost}</td>`;
+            html += `<td style="text-align: center;">$${r.total_cost}</td>`;
+            html += `<td style="text-align: center;">$${r.recipe_price}</td>`;
+            html += `<td style="text-align: center; color: ${statusColor};">${r.profit_margin}%</td>`;
+            html += `<td style="text-align: center;"><span style="background: ${statusColor}; color: white; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.7rem;">${r.status}</span></td>`;
+            html += '</tr>';
+          });
+          html += '</table></details>';
+        }
+        
+        html += '</div>';
+        return html;
+      }
+      
+      // Helper to format markdown
+      function formatMarkdown(text) {
+        if (!text) return '';
+        return text
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/^### (.*$)/gim, '<h5 style="color: var(--accent-primary); margin: 0.75rem 0 0.25rem;">$1</h5>')
+          .replace(/^## (.*$)/gim, '<h4 style="color: var(--accent-primary); margin: 1rem 0 0.5rem;">$1</h4>')
+          .replace(/^# (.*$)/gim, '<h3 style="color: var(--accent-primary); margin: 1rem 0 0.5rem;">$1</h3>')
+          .replace(/^\d+\. (.*$)/gim, '<div style="margin-left: 1rem;">• $1</div>')
+          .replace(/^- (.*$)/gim, '<div style="margin-left: 1rem;">• $1</div>')
+          .replace(/\n/g, '<br>');
+      }
+
+      window.sendMessage = async function() {
+        // Hide any pending confirm panel when user sends the message
+        const pending = document.getElementById('analysis-confirm');
+        if (pending) { pending.style.display = 'none'; }
+
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+
+        try {
+          const response = await fetch('/chat/api/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': CSRF_TOKEN
+            },
+            body: `message=${encodeURIComponent(message)}&context=recipes`
+          });
+          const data = await response.json();
+          addMessage(data.error ? `❌ Error: ${data.error}` : (data.response || 'No response'), false);
+        } catch (error) {
+          addMessage(`❌ Error: ${error.message}`, false);
+        }
+      };
+
+      function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = content;
+        const time = document.createElement('div');
+        time.className = 'message-time';
+        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(time);
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      }
+
+      window.clearChat = function() {
+        messagesArea.innerHTML = `
+          <div class="message assistant">
+            <div class="message-bubble">Hello! I can help you create new recipes, calculate costs, scale portions, or optimize your existing recipes. What would you like to work on today?</div>
+            <div class="message-time">Just now</div>
+          </div>
+        `;
+      };
+
+      function showConfirmPanel(exampleText) {
+        const confirm = document.getElementById('analysis-confirm');
+        confirm.style.display = 'block';
+      
+        document.getElementById('confirm-analyze').onclick = function() {
+          if (typeof window.sendMessage === 'function') {
+            window.sendMessage();
+          }
+          confirm.style.display = 'none';
+        };
+
+        document.getElementById('confirm-edit').onclick = function() {
+          document.getElementById('chat-input').focus();
+        };
+
+        document.getElementById('confirm-cancel').onclick = function() {
+          document.getElementById('chat-input').value = '';
+          confirm.style.display = 'none';
+        };
+      }
+
+      window.createRecipe = () => {
+        const example = 'Create a recipe named: recipe_name "Grilled Salmon", servings 6, prep_time 20, cook_time 30, ingredients: Salmon 24 oz, Lemon 4 oz, Butter 2 oz, Garlic 1 oz, ingredient_cost 18.00, labor_cost 4.50, recipe_price 28.00. Include ingredient suggestions, brief steps, nutrition per serving, and auto-costing.';
+        document.getElementById('chat-input').value = example;
+        showConfirmPanel(example);
+      };
+
+      window.costAnalysis = () => {
+        const example = 'Analyze recipe costs of: recipe_name "Grilled Salmon", ingredient_cost 5.80, portion_cost 2.30, recipe_price 13.50, servings 2, labor_cost 3.50. Calculate food cost %, margin, and recommend price to hit 70% margin.';
+        document.getElementById('chat-input').value = example;
+        showConfirmPanel(example);
+      };
+
+      window.scaleRecipe = () => {
+        const example = 'Scale "Classic Tomato Soup" which serves 6 to 48 servings. Provide ingredient quantities, converted units, and suggested batch yields.';
+        document.getElementById('chat-input').value = example;
+        showConfirmPanel(example);
+      };
+      window.searchRecipes = () => {
+        const query = document.getElementById('recipe-search').value.toLowerCase();
+        recipeCards.forEach(card => {
+          const name = card.querySelector('.recipe-name').textContent.toLowerCase();
+          const desc = card.querySelector('.recipe-desc').textContent.toLowerCase();
+          card.style.display = (name.includes(query) || desc.includes(query)) ? 'block' : 'none';
+        });
+      };
+    });
+  </script>
+</body>
+</html>
