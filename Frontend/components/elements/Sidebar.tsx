@@ -4,14 +4,14 @@ import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  ChevronLeft, 
-  Plus, 
-  BarChart3, 
-  Users, 
-  Wine, 
-  ChefHat, 
-  Lightbulb, 
+import {
+  ChevronLeft,
+  Plus,
+  BarChart3,
+  Users,
+  Wine,
+  ChefHat,
+  Lightbulb,
   TrendingUp,
   FileSpreadsheet,
   User,
@@ -81,7 +81,7 @@ export default function Sidebar() {
     <>
       {/* Mobile Overlay */}
       {open && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setOpen(false)}
         />
@@ -120,7 +120,7 @@ export default function Sidebar() {
 
         {/* New Chat Button */}
         <div className="p-4">
-          <Button 
+          <Button
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium"
             onClick={() => {
               router.push("/dashboard")
@@ -191,7 +191,20 @@ export default function Sidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-1">
-          <button 
+          {/* {pathname !== "/dashboard" && (
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                router.push("/dashboard")
+                if (window.innerWidth < 1024) setOpen(false)
+              }}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          )} */}
+          <button
             onClick={() => router.push("/dashboard/profile")}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
           >
@@ -199,21 +212,21 @@ export default function Sidebar() {
             User Profile
           </button>
           <Select
-      defaultValue="en"
-      onValueChange={(value) => {
-        // handle language change here
-        console.log("Selected language:", value)
-      }}
-    >
-      <SelectTrigger className="w-[160px]">
-        <SelectValue placeholder="Select language" />
-      </SelectTrigger>
+            defaultValue="en"
+            onValueChange={(value) => {
+              // handle language change here
+              console.log("Selected language:", value)
+            }}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
 
-      <SelectContent align="end">
-        <SelectItem value="en">English</SelectItem>
-        <SelectItem value="es">Spanish</SelectItem>
-      </SelectContent>
-    </Select>
+            <SelectContent align="end">
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="es">Spanish</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </aside>
     </>

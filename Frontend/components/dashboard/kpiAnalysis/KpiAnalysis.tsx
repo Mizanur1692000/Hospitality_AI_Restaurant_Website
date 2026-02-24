@@ -28,9 +28,9 @@ const analysisCards = [
     samplePrompt:
       "Analyze my labor cost. Total sales: $50,000. Labor cost: $15,000. Hours worked: 800. Overtime hours: 40. Covers served: 2,000.",
     features: [
-      "Calculated labor percentage",
-      "Identify scheduling inefficiencies",
-      "Benchmark against industry standards",
+      "Labor cost percentage",
+      "Overtime tracking",
+      "Productivity metrics",
     ],
   },
   {
@@ -41,9 +41,9 @@ const analysisCards = [
     samplePrompt:
       "Analyze my prime cost. Total sales: $50,000. Labor cost: $15,000. Food cost: $14,000. Covers served: 2,000.",
     features: [
-      "Labor + Food cost tracking",
-      "Industry benchmarking",
-      "Cost optimization recommendations",
+      "Prime cost percentage",
+      "Target benchmarking",
+      "Trend analysis",
     ],
   },
   {
@@ -55,8 +55,8 @@ const analysisCards = [
       "Analyze my sales performance. Total sales: $50,000. Labor cost: $15,000. Food cost: $14,000. Hours worked: 800. Previous sales: $48,000. Covers served: 2,000. Average check: $25.",
     features: [
       "Sales per labor hour",
-      "Revenue trend analysis",
-      "Performance forecasting",
+      "Revenue trends",
+      "Growth analysis",
     ],
   },
 ];
@@ -331,7 +331,7 @@ export default function KPIAnalysis() {
       </div>
 
       {/* Input Area - Fixed at Bottom */}
-      <div className="sticky bottom-0 border-t border-gray-800/30 dark:bg-black bg-white">
+      <div className="sticky z-30 bottom-0 border-t border-gray-800/30 dark:bg-black bg-white">
         <div className="max-w-5xl mx-auto p-4">
           <div className="flex gap-2 items-center dark:bg-[#1E2939] bg-gray-100 rounded-xl px-4 py-3 border border-gray-700/30">
             <input
@@ -357,8 +357,7 @@ export default function KPIAnalysis() {
               onKeyDown={handleKeyPress}
               placeholder="Enter: Total Sale, Labor Cost, Hours Worked (e.g., 10000, 3000, 120)"
               disabled={isLoading}
-              className="flex-1 resize-none overflow-hidden
-             bg-transparent border-none text-black dark:text-white 
+              className="flex-1 resize-none overflow-hidden border-none text-black dark:text-white 
              placeholder:text-gray-500 
              focus-visible:ring-0 focus-visible:ring-offset-0"
             />

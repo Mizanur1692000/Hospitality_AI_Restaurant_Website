@@ -1,14 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { ChevronLeft, Menu } from "lucide-react"
 import { useSidebar } from "@/components/ui/sidebar"
+import { usePathname, useRouter } from "next/navigation"
 
 export default function MobileHeader() {
   const { setOpen } = useSidebar()
+  const router = useRouter()
+  const pathname = usePathname()
 
   return (
-    <div className="lg:hidden flex items-center p-4 bg-gray-100 dark:bg-[#1E2939] border-b border-gray-200 dark:border-gray-800">
+    <div className="lg:hidden flex items-center justify-between gap-3 p-4 bg-gray-100 dark:bg-[#1E2939] border-b border-gray-200 dark:border-gray-800">
       <Button
         variant="ghost"
         size="icon"
@@ -26,6 +29,18 @@ export default function MobileHeader() {
           <div className="text-xs text-green-500">AI Assistant Active</div>
         </div>
       </div>
+
+      {pathname !== "/dashboard" && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push("/dashboard")}
+          className="ml-auto"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Dashboard
+        </Button>
+      )}
     </div>
   )
 }

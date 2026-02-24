@@ -28,9 +28,9 @@ const analysisCards = [
     samplePrompt:
       "Staff retention sample: turnover_rate: 0.45, industry_average: 0.70, department: Front of House, employee_count: 25",
     features: [
-      "Turnover rate analysis",
-      "Industry benchmarking",
+      "Turnover analysis ",
       "Retention strategies",
+      "Cost impact assessment",
     ],
   },
   {
@@ -41,9 +41,9 @@ const analysisCards = [
     samplePrompt:
       "Labor scheduling sample: total_sales: 50000, labor_hours: 800, hourly_rate: 15, peak_hours: 200, date: 2026-02-01, department: Kitchen.",
     features: [
-      "Peak hour analysis",
-      "Overtime reduction",
-      "Cost optimization",
+      "Shift optimization",
+      "Peak hour coverage",
+      "Overtime management",
     ],
   },
   {
@@ -54,9 +54,9 @@ const analysisCards = [
     samplePrompt:
       "Training programs sample: customer_satisfaction: 0.85, sales_performance: 0.95, efficiency_score: 0.80, attendance_rate: 0.92, employee name: Alex Rivera, department: Service",
     features: [
-      "KPI tracking",
-      "Goal setting",
-      "Training recommendations",
+      "Onboarding optimization",
+      "Skill development",
+      "Performance tracking",
     ],
   },
 ]

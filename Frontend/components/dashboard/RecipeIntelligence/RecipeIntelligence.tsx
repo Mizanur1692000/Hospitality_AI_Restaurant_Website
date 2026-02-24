@@ -28,9 +28,9 @@ const analysisCards = [
     title: "Create Recipe",
     iconBg: "bg-green-500",
     features: [
-      "Ingredient cost tracking",
-      "Portion cost calculation",
-      "Margin analysis",
+      "Ingredient suggestion",
+      "Auto-costing",
+      "Nutrition analysis",
     ],
     samplePrompt:
       'Create a recipe named: recipe_name "Grilled Salmon", servings 6, prep_time 20, cook_time 30, ingredients: Salmon 24 oz, Lemon 4 oz, Butter 2 oz, Garlic 1 oz, ingredient_cost 18.00, labor_cost 4.50, recipe_price 28.00. Include ingredient suggestions, brief steps, nutrition per serving, and auto-costing.',
@@ -41,9 +41,9 @@ const analysisCards = [
     title: "Cost Analysis",
     iconBg: "bg-purple-500",
     features: [
-      "Supplier comparison",
-      "Waste reduction",
-      "Quality consistency",
+      "Ingredient costs tracking",
+      "Margin calculator",
+      "Price recommendations",
     ],
     samplePrompt:
       'Analyze recipe costs of: recipe_name "Grilled Salmon", ingredient_cost 5.80, portion_cost 2.30, recipe_price 13.50, servings 2, labor_cost 3.50. Calculate food cost %, margin, and recommend price to hit 70% margin.',
@@ -54,9 +54,9 @@ const analysisCards = [
     title: "Scale Recipes",
     iconBg: "bg-cyan-500",
     features: [
-      "Batch size optimization",
-      "Yield calculations",
-      "Consistency maintenance",
+      "Batch scaling",
+      "Unit conversion",
+      "Yield optimization",
     ],
     samplePrompt:
       'Scale "Classic Tomato Soup" which serves 6 to 48 servings. Provide ingredient quantities, converted units, and suggested batch yields.',

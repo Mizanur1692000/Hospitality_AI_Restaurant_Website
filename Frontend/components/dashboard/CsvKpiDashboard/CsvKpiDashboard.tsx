@@ -439,10 +439,10 @@ export default function KPIDashboard() {
       <main className="relative z-10 mx-auto max-w-7xl px-6 py-10">
         {/* ── Page Title ── */}
         <div className="text-center mb-12">
-          <h1 className="bg-gradient-to-r from-[#C27AFF] via-[#51A2FF] to-[#C27AFF] bg-clip-text text-transparent text-4xl font-semibold text-center mb-4">
+          <h1 className="bg-gradient-to-r from-[#C27AFF] via-[#51A2FF] to-[#C27AFF] bg-clip-text text-transparent text-4xl font-bold text-center mb-4">
             KPI Dashboard
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 text-lg">
+          <p className="text-gray-500 dark:text-gray-400 text-xl">
             Real-time performance metrics and analytics
 
 
@@ -452,7 +452,7 @@ export default function KPIDashboard() {
         </div>
 
         {/* ── Quick Stats ── */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        {/* <div className="mb-8 flex flex-wrap gap-3">
           {[
             {
               dot: "bg-emerald-500 shadow-emerald-400/60",
@@ -474,7 +474,7 @@ export default function KPIDashboard() {
               {label}
             </span>
           ))}
-        </div>
+        </div> */}
 
         {/* ── Metric Cards ── */}
         <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">

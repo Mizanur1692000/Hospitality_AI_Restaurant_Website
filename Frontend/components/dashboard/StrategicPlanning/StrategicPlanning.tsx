@@ -28,9 +28,9 @@ const analysisCards = [
     title: "SWOT Analysis",
     iconBg: "bg-violet-500",
     features: [
-      "Strengths & weaknesses audit",
-      "Opportunity identification",
-      "Threat mitigation planning",
+      "Strengths & weaknesses identification",
+      "Market opportunities analysis",
+      "Threat mitigation strategies",
     ],
     samplePrompt:
       "Analysis type: SWOT\nPerform SWOT analysis. Strengths: loyal customer base, prime location; Weaknesses: high labor cost, limited seating; Opportunities: catering, online ordering; Threats: new competitors, rising food costs.",
@@ -41,9 +41,9 @@ const analysisCards = [
     title: "Business Goals",
     iconBg: "bg-sky-500",
     features: [
-      "Revenue & budget planning",
-      "ROI target tracking",
-      "Marketing spend analysis",
+      "SMART goal setting",
+      "Progress tracking",
+      "Milestone planning",
     ],
     samplePrompt:
       "Analysis type: Business Goals\nAnalyze business goals. Revenue target: $1,200,000. Budget total: $250,000. Marketing spend: $60,000. Target ROI: 20%. Timeline: 12 months.",
@@ -54,9 +54,9 @@ const analysisCards = [
     title: "Growth Strategy",
     iconBg: "bg-emerald-500",
     features: [
-      "Market opportunity sizing",
-      "Competitive positioning",
-      "Investment ROI planning",
+      "Expansion planning",
+      "Market analysis",
+      "Revenue projections",
     ],
     samplePrompt:
       "Analysis type: Growth Strategy\nAnalyze growth strategy. Market size: $5,000,000. Market share: 3%. Competition level: 65%. Investment budget: $150,000. Target ROI: 18%.",

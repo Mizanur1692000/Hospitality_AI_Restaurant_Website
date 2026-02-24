@@ -56,7 +56,7 @@ const analysisCards = [
     features: [
       "Margin analysis",
       "Competitive pricing",
-      "Menu optimization",
+      "Profit optimization",
     ],
   },
 ]
