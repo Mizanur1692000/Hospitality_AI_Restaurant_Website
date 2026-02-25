@@ -186,7 +186,6 @@ function detectDomainFromText(message: string): Domain {
 }
 
 function parseCsvLine(line: string): string[] {
-  // Minimal CSV header parser with quote support.
   const out: string[] = [];
   let cur = "";
   let inQuotes = false;

@@ -1,5 +1,4 @@
-﻿# chat_assistant/views.py
-from django.http import JsonResponse
+﻿from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -15,7 +14,6 @@ def chat_ui(request):
 @csrf_exempt
 @require_http_methods(["POST", "OPTIONS"])
 def chat_api(request):
-    # Handle CORS preflight
     if request.method == "OPTIONS":
         response = JsonResponse({})
         response["Access-Control-Allow-Origin"] = "*"
@@ -23,8 +21,6 @@ def chat_api(request):
         response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         return response
 
-    # Parse message from JSON body or form data.
-    # Be tolerant: some clients omit/alter Content-Type, or send different key names.
     def _extract_message_and_context():
         raw_body = request.body or b""
         content_type = (request.content_type or "").lower()
@@ -96,15 +92,12 @@ def chat_api(request):
             status=400,
         )
 
-    # Session-backed chat memory (lightweight, per user/browser).
-    # Stored as a list of {"role": "user"|"assistant", "content": "..."}.
     history = request.session.get("chat_history", [])
     if not isinstance(history, list):
         history = []
 
     response = chat_with_gpt(user_input, context, history=history)
 
-    # Update history (bound size to prevent session bloat).
     if isinstance(user_input, str) and user_input.strip():
         history.append({"role": "user", "content": user_input.strip()})
     if isinstance(response, str) and response.strip():

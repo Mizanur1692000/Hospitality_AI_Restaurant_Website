@@ -19,7 +19,6 @@ from .serializers import RecipeChatRequestSerializer
 logger = logging.getLogger(__name__)
 
 
-# ─────────────────────────── helpers ─────────────────────────────────────────
 
 def _error_payload(*, code: str, message: str, details=None, trace_id: str | None = None):
     payload = {"error": {"code": code, "message": message}}
@@ -70,7 +69,6 @@ def _is_error_result(result_tuple) -> tuple[bool, str]:
     return False, ""
 
 
-# ──────────────────────── param parsing ──────────────────────────────────────
 
 def _coerce(value: str):
     raw = value.strip().rstrip(".,;")
@@ -190,7 +188,6 @@ def _parse_scale_servings(message: str) -> tuple[float, float]:
     return 0.0, 0.0
 
 
-# ──────────────────── Rich create-recipe HTML generator ─────────────────────
 
 def _re_parse_ingredients(raw: str) -> list[dict]:
     """Parse ingredient string into list of {name, amount, unit}."""
@@ -677,7 +674,6 @@ def _generate_create_recipe_html(params: dict) -> str:
     return "".join(parts)
 
 
-# ─────────────────────────── CSV helper ──────────────────────────────────────
 
 def _format_csv_report_html(result: dict) -> str:
     if not isinstance(result, dict):
@@ -707,7 +703,6 @@ def _format_csv_report_html(result: dict) -> str:
     return _ensure_html(str(html_report))
 
 
-# ─────────────────────────── API views ───────────────────────────────────────
 
 @method_decorator(csrf_exempt, name="dispatch")
 class RecipeChatAPIView(APIView):

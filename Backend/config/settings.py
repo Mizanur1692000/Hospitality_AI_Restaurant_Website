@@ -19,7 +19,6 @@ DEBUG = env("DJANGO_DEBUG", default=True)
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*", "*.ngrok-free.app", "*.ngrok.io", "localhost", "127.0.0.1"])
 
-# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -27,7 +26,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Your custom app
     "apps.agent_core",
     "apps.chat_assistant",
     "apps.dashboard",
@@ -37,19 +35,18 @@ INSTALLED_APPS = [
     "apps.menu_api",
     "apps.recipe_api",
     "apps.strategic_api",
-    # 3rd-party
     "rest_framework",
     "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",  # CORS before CommonMiddleware
-    "apps.agent_core.middleware.NgrokHostMiddleware",  # Custom ngrok host middleware
+    "corsheaders.middleware.CorsMiddleware",
+    "apps.agent_core.middleware.NgrokHostMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",  # Add locale middleware
+    "django.middleware.locale.LocaleMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -68,7 +65,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "django.template.context_processors.i18n",  # Add i18n context processor
+                "django.template.context_processors.i18n",
             ],
         },
     },
@@ -91,7 +88,7 @@ else:
 
 # Static files
 STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"  # For collectstatic in production
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # REST Framework configuration
 REST_FRAMEWORK = {

@@ -5,16 +5,13 @@ import { Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
-// Manual Select component if shadcn select is causing issues
-import {
-  Select,
+import { Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 
-// Manual Table components
 import {
   Table,
   TableBody,
@@ -24,7 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-// Manual AlertDialog
 import {
   AlertDialog,
   AlertDialogAction,

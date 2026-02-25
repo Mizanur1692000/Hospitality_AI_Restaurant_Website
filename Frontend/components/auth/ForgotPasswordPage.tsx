@@ -23,9 +23,7 @@ export default function ForgotPasswordPage() {
     },
   })
 
-  const onSubmit = (data: ForgotPasswordFormValues) => {
-    console.log(data)
-    // Navigate to OTP verification
+  const onSubmit = (_data: ForgotPasswordFormValues) => {
     window.location.href = "/auth/verify-otp"
   }
 

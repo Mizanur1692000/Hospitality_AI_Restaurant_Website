@@ -1,8 +1,3 @@
-"""
-Safe API View for Business Insight Cards
-Extends existing functionality without breaking current endpoints.
-"""
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -18,32 +13,22 @@ logger = logging.getLogger(__name__)
 @method_decorator(csrf_exempt, name='dispatch')
 class SafeAgentServiceView(APIView):
     """
-    Safe POST /api/agent/safe/
-    {
-      "service": "kpi",
-      "subtask": "labor_cost",
-      "params": { ... }
-    }
-
-    This endpoint provides a safe way to execute business insight card tasks
-    without interfering with the existing agent endpoint.
+    POST /api/agent/safe/
+    {"service": "kpi", "subtask": "labor_cost", "params": { ... }}
     """
 
     def post(self, request):
         try:
-            # Extract request data
             service = request.data.get("service")
             subtask = request.data.get("subtask")
             params = request.data.get("params") or {}
 
-            # Validate required fields
             if not service or not subtask:
                 return Response({
                     "error": "service and subtask are required",
                     "status": "error"
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Check if task is registered
             if not task_registry.get_task(service, subtask):
                 available_tasks = list(task_registry.list_tasks().keys())
                 return Response({
@@ -52,15 +37,12 @@ class SafeAgentServiceView(APIView):
                     "status": "error"
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            # Handle file uploads if present
             file_bytes = None
             if "file" in request.FILES:
                 file_bytes = request.FILES["file"].read()
 
-            # Execute the task
             payload, code = task_registry.execute_task(service, subtask, params, file_bytes)
 
-            # Return response with appropriate status code
             return Response(payload, status=code)
 
         except ValueError as e:

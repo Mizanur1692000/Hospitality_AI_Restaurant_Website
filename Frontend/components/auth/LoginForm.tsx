@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { is } from "zod/v4/locales";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -51,7 +50,6 @@ export default function LoginPage() {
   });
 
   const onSubmit = (data: LoginFormValues) => {
-    console.log(data);
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);

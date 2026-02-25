@@ -20,7 +20,6 @@ from .serializers import MenuChatRequestSerializer
 logger = logging.getLogger(__name__)
 
 
-# ─────────────────────────── helpers ────────────────────────────────────────
 
 def _error_payload(*, code: str, message: str, details=None, trace_id: str | None = None):
     payload = {"error": {"code": code, "message": message}}
@@ -157,7 +156,6 @@ def _detect_subtask(message: str, params: dict, prefix_hint: str) -> str:
     return "menu_analysis"
 
 
-# ──────────────────────── HTML generators ───────────────────────────────────
 
 def _now_str() -> str:
     return datetime.now().strftime("%B %d, %Y")
@@ -565,7 +563,6 @@ def _generate_item_optimization_html(params: dict) -> str:
     return "".join(parts)
 
 
-# ─────────────────── CSV report HTML ────────────────────────────────────────
 
 def _format_menu_csv_report_html(result: dict) -> str:
     if not isinstance(result, dict):
@@ -601,7 +598,6 @@ def _format_menu_csv_report_html(result: dict) -> str:
     return _ensure_html(str(html_report))
 
 
-# ─────────────────── API views ───────────────────────────────────────────────
 
 @method_decorator(csrf_exempt, name="dispatch")
 class MenuChatAPIView(APIView):

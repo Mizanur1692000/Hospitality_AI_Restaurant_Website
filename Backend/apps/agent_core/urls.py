@@ -8,8 +8,8 @@ from .views import (
 from .views_safe import SafeAgentServiceView
 
 urlpatterns = [
-    path("", agent_index, name="agent-index"),  # ✅ /api/
-    path("status/", agent_status, name="agent-status"),  # ✅ /api/status/
-    path("agent/", agent_view, name="agent"),  # ✅ /api/agent/ (unified endpoint for all tasks)
-    path("agent/safe/", SafeAgentServiceView.as_view(), name="agent-safe"),  # ✅ /api/agent/safe/ (safe endpoint for business insight cards)
+    path("", agent_index, name="agent-index"),
+    path("status/", agent_status, name="agent-status"),
+    path("agent/", agent_view, name="agent"),
+    path("agent/safe/", SafeAgentServiceView.as_view(), name="agent-safe"),
 ]

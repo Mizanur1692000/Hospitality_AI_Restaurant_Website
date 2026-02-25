@@ -79,7 +79,6 @@ def build_error_response(
     if trace_id:
         response_data["trace_id"] = trace_id
 
-    # For backwards compatibility with some responses expecting "status" field
     if code == ErrorCodes.LOCKED:
         response_data["status"] = "locked"
 
@@ -96,7 +95,6 @@ def require_post_json(view_func: Callable) -> Callable:
     """
     @functools.wraps(view_func)
     def wrapper(request: HttpRequest, *args, **kwargs) -> JsonResponse:
-        # Validate POST method
         if request.method != "POST":
             logger.warning(
                 "Invalid method %s attempted on %s",
@@ -109,7 +107,6 @@ def require_post_json(view_func: Callable) -> Callable:
                 status=HTTPStatus.METHOD_NOT_ALLOWED
             )
 
-        # Parse JSON body
         try:
             request.json = json.loads(request.body or "{}")  # type: ignore
             logger.debug("Parsed JSON payload with keys: %s", list(request.json.keys()))  # type: ignore
@@ -155,7 +152,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
         >>> agent_view(request).status_code
         400
     """
-    # Handle file uploads (multipart/form-data)
     if request.FILES:
         uploaded_file = request.FILES.get("file")
         task = request.POST.get("task")
@@ -173,7 +169,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 details={"received_files": list(request.FILES.keys())}
             )
         
-        # Validate file type
         if not uploaded_file.name.lower().endswith(".csv"):
             return build_error_response(
                 ErrorCodes.INVALID_INPUT,
@@ -181,7 +176,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 details={"supported_formats": [".csv"]}
             )
         
-        # Route to appropriate CSV processor
         try:
             if task == "product_mix":
                 from backend.consulting_services.menu.legacy_product_mix import process_csv_data
@@ -303,13 +297,11 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 status_code = 400 if result.get("status") == "error" else 200
                 return JsonResponse(result, status=status_code)
             elif task == "pricing":
-                # CSV-based pricing strategy analysis
                 from backend.consulting_services.menu.pricing_csv_processor import process_pricing_csv_data
                 result = process_pricing_csv_data(uploaded_file)
                 status_code = 400 if result.get("status") == "error" else 200
                 return JsonResponse(result, status=status_code)
             elif task == "design":
-                # CSV-based menu design recommendations (matrix mapping)
                 from backend.consulting_services.menu.design_csv_processor import process_design_csv_data
                 result = process_design_csv_data(uploaded_file)
                 status_code = 400 if result.get("status") == "error" else 200
@@ -325,14 +317,12 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 status_code = 400 if result.get("status") == "error" else 200
                 return JsonResponse(result, status=status_code)
             elif task == "optimization":
-                # CSV-based item optimization analysis
                 from backend.consulting_services.menu.optimization_csv_processor import process_optimization_csv_data
                 result = process_optimization_csv_data(uploaded_file)
                 status_code = 400 if result.get("status") == "error" else 200
                 return JsonResponse(result, status=status_code)
             elif task in ["hr_retention", "hr_scheduling", "hr_performance", "hr_analysis"]:
                 from backend.consulting_services.hr.hr_csv_processor import process_hr_csv_data
-                # Map task to analysis type
                 analysis_type_map = {
                     "hr_retention": "retention",
                     "hr_scheduling": "scheduling",
@@ -345,7 +335,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 return JsonResponse(result, status=status_code)
             elif task in ["labor_cost", "food_cost", "prime_cost", "liquor_cost", "beverage_cost", "liquor_variance", "cost_analysis"]:
                 from backend.consulting_services.cost.cost_csv_processor import process_cost_csv_data
-                # Map task to analysis type
                 analysis_type_map = {
                     "labor_cost": "labor",
                     "food_cost": "food",
@@ -360,9 +349,7 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 status_code = 400 if result.get("status") == "error" else 200
                 return JsonResponse(result, status=status_code)
             elif task in ["liquor_cost_analysis", "bar_inventory_analysis", "beverage_pricing_analysis"]:
-                # Try the selected beverage processor; on column errors, auto-detect and fallback
                 def _try_processor(proc_func):
-                    # Ensure we reset file pointer between reads
                     try:
                         uploaded_file.seek(0)
                     except Exception:
@@ -381,7 +368,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                     from backend.consulting_services.beverage.beverage_pricing_csv_processor import process_beverage_pricing_csv_data
                     result = _try_processor(process_beverage_pricing_csv_data)
 
-                # If missing columns error, auto-detect based on CSV headers
                 if result and result.get("status") == "error" and "Missing required columns" in (result.get("message") or ""):
                     import pandas as pd
                     try:
@@ -393,7 +379,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                         cols = [c.lower().strip() for c in df.columns]
                         def has_all(keys):
                             return all(k in cols for k in keys)
-                        # Decide which processor matches the CSV
                         if has_all(["expected_oz", "actual_oz", "liquor_cost", "total_sales"]):
                             from backend.consulting_services.beverage.liquor_cost_csv_processor import process_liquor_cost_csv_data
                             uploaded_file.seek(0)
@@ -407,7 +392,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                             uploaded_file.seek(0)
                             result = process_beverage_pricing_csv_data(uploaded_file)
                         else:
-                            # Fallback to general cost auto-detection
                             from backend.consulting_services.cost.cost_csv_processor import process_cost_csv_data
                             uploaded_file.seek(0)
                             result = process_cost_csv_data(uploaded_file, "auto")
@@ -457,7 +441,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
                 status=HTTPStatus.INTERNAL_SERVER_ERROR
             )
     
-    # Handle JSON payloads
     if request.method != "POST":
         logger.warning(
             "Invalid method %s attempted on %s",
@@ -470,7 +453,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             status=HTTPStatus.METHOD_NOT_ALLOWED
         )
     
-    # Parse JSON body
     try:
         body = json.loads(request.body or "{}")
         logger.debug("Parsed JSON payload with keys: %s", list(body.keys()))
@@ -486,7 +468,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             details={"error": str(e)}
         )
 
-    # Validate task parameter
     task = body.get("task")
     if not isinstance(task, str) or not task.strip():
         logger.warning("Invalid or missing task parameter: %r", task)
@@ -502,7 +483,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
         _has_kpi_entitlement(request)
     )
 
-    # Look up task definition
     definition: Optional[TaskDefinition] = TASK_DEFINITIONS.get(task)
     if definition is None:
         logger.warning("Unknown task requested: %s", task)
@@ -512,7 +492,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             details={"available_tasks": sorted(TASK_DEFINITIONS.keys())}
         )
 
-    # Validate payload
     payload = body.get("payload", {})
     if payload is None:
         payload = {}
@@ -523,7 +502,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             ErrorMessages.PAYLOAD_MUST_BE_OBJECT
         )
 
-    # Check entitlement if required
     if definition.requires_entitlement and not _has_kpi_entitlement(request):
         logger.info("Task %s requires entitlement but header not present", task)
         return build_error_response(
@@ -532,7 +510,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             status=HTTPStatus.FORBIDDEN
         )
 
-    # Validate payload against schema
     try:
         validated = definition.schema(**payload)
         logger.debug("Payload validation successful for task %s", task)
@@ -544,7 +521,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             details=_format_validation_errors(error)
         )
 
-    # Execute task
     try:
         result = definition.runner(validated)
         logger.info("Task %s executed successfully", task)
@@ -563,7 +539,6 @@ def agent_view(request: HttpRequest) -> JsonResponse:
             status=HTTPStatus.INTERNAL_SERVER_ERROR
         )
 
-    # Validate response type
     if not isinstance(result, dict):
         trace_id = uuid4().hex
         logger.error(
@@ -684,12 +659,10 @@ def agent_index(request: HttpRequest) -> JsonResponse:
     """
     logger.debug("Index requested from %s", request.META.get("REMOTE_ADDR"))
 
-    # Get available tasks if user has entitlement
     available_tasks = None
     if _has_kpi_entitlement(request):
         available_tasks = sorted(TASK_DEFINITIONS.keys())
     else:
-        # Only show non-entitlement tasks
         available_tasks = sorted(
             task for task, defn in TASK_DEFINITIONS.items()
             if not defn.requires_entitlement
@@ -719,20 +692,3 @@ def agent_index(request: HttpRequest) -> JsonResponse:
             "available_tasks": available_tasks
         }
     )
-
-
-# URL Configuration Helper
-def get_urlpatterns():
-    """Return URL patterns for inclusion in urls.py.
-
-    Usage in urls.py:
-        from agent.views import get_urlpatterns
-        urlpatterns += get_urlpatterns()
-    """
-    from django.urls import path
-
-    return [
-        path('agent/', agent_view, name='agent'),
-        path('agent/status/', agent_status, name='agent-status'),
-        path('agent/index/', agent_index, name='agent-index'),
-    ]

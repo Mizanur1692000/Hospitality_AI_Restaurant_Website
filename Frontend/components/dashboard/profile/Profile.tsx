@@ -80,16 +80,14 @@ export default function Profile() {
     }
   };
 
-  const onContactSubmit = (data: ContactFormValues) => {
-    console.log("Contact updated:", data);
+  const onContactSubmit = (_data: ContactFormValues) => {
     setIsEditingContact(false);
     toast.success("Profile Updated", {
       description: "Your contact information has been saved.",
     });
   };
 
-  const onPasswordSubmit = (data: PasswordFormValues) => {
-    console.log("Password updated");
+  const onPasswordSubmit = (_data: PasswordFormValues) => {
     setIsEditingPassword(false);
     passwordForm.reset();
     setShowNewPassword(false);

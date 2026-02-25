@@ -1,4 +1,3 @@
-# chat_assistant/openai_utils.py
 import os
 import re
 import hashlib
@@ -301,9 +300,7 @@ def extract_kpi_data(prompt: str) -> dict:
                         data['hours_worked'] = num
                         break
 
-    # =====================================================
     # OPTIONAL KPI PARAMETERS - Labor Cost Analysis
-    # =====================================================
     
     # Extract overtime hours - patterns: "overtime hours: 40", "40 overtime hours", "overtime: 40"
     # First try "overtime hours: NUMBER" pattern (most specific for new format)
@@ -347,9 +344,7 @@ def extract_kpi_data(prompt: str) -> dict:
                 if covers_match4:
                     data['covers'] = int(float(covers_match4.group(1).replace(',', '')))
     
-    # =====================================================
     # OPTIONAL KPI PARAMETERS - Food Cost Analysis
-    # =====================================================
     
     # Extract waste cost - patterns: "waste cost: $800", "waste cost is $800", "waste: $800"
     waste_cost_match = re.search(r'waste\s+cost[:\s]+\$?([0-9,]+(?:\.[0-9]+)?)', prompt_lower)
@@ -382,9 +377,7 @@ def extract_kpi_data(prompt: str) -> dict:
         if end_inv_match2:
             data['ending_inventory'] = float(end_inv_match2.group(1).replace(',', ''))
     
-    # =====================================================
     # OPTIONAL KPI PARAMETERS - Sales Performance Analysis
-    # =====================================================
     
     # Extract previous sales - patterns: "previous sales: $48,000", "previous sales were $48,000"
     prev_sales_match = re.search(r'previous\s+(?:period\s+)?sales[:\s]+\$?([0-9,]+(?:\.[0-9]+)?)', prompt_lower)
@@ -1233,12 +1226,10 @@ def handle_kpi_analysis(prompt: str) -> str:
         # Import here to avoid circular imports
         from apps.agent_core.task_registry import task_registry
         
-        # =====================================================
         # IMPORTANT: Check for ANALYSIS REQUEST keywords first
         # Use regex patterns that look for "analyze X" or "X analysis"
         # This prevents data mentions like "food cost: $14,000" from 
         # triggering the wrong analysis type
-        # =====================================================
         
         # Helper function to detect analysis request type
         def is_requesting_analysis(analysis_type):
@@ -2152,10 +2143,8 @@ Example: "Analyze staff performance. Customer satisfaction: 85%. Sales performan
 
 Or upload a CSV file with columns: customer_satisfaction, sales_performance, efficiency_score, attendance_rate"""
 
-        # =====================================================
         # CORE KPI ANALYSIS - Use is_requesting_analysis() to detect intent
         # Order matters: more specific analyses first
-        # =====================================================
         
         # PRIME COST ANALYSIS - Check first (contains both labor and food, so must come before individual checks)
         elif is_requesting_analysis('prime cost') or is_requesting_analysis('prime') or 'prime cost' in prompt_lower.split('analyze')[-1] if 'analyze' in prompt_lower else False:

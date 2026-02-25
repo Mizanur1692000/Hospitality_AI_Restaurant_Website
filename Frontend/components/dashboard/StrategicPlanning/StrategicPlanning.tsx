@@ -19,8 +19,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { sendChatMessage, uploadCsv } from "@/services/strategicService"
 import styles from "./strategicReportStyles.module.css"
 
-// Card definitions
-
 const analysisCards = [
   {
     id: "swot",
@@ -63,16 +61,12 @@ const analysisCards = [
   },
 ]
 
-// Types
-
 type ChatMessage = {
   id: number
   type: "user" | "ai"
   text?: string
   html?: string
 }
-
-// Sanitizer
 
 function sanitizeStrategicHtml(dirtyHtml: string): string {
   if (typeof window === "undefined") return ""
@@ -82,8 +76,6 @@ function sanitizeStrategicHtml(dirtyHtml: string): string {
     FORCE_BODY: true,
   })
 }
-
-// Component
 
 export default function StrategicPlanning() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
@@ -104,7 +96,6 @@ export default function StrategicPlanning() {
     scrollToBottom()
   }, [messages])
 
-  // Card click: autofill sample prompt
   const handleCardClick = (cardId: string) => {
     const card = analysisCards.find((c) => c.id === cardId)
     if (!card) return
@@ -113,7 +104,6 @@ export default function StrategicPlanning() {
     setError(null)
   }
 
-  // Send chat message
   const handleSendMessage = async () => {
     const trimmed = inputValue.trim()
     if (!trimmed || isLoading) return
@@ -139,7 +129,6 @@ export default function StrategicPlanning() {
     }
   }
 
-  // CSV upload
   const handleCsvUpload = async (file: File) => {
     if (!file) return
     setIsLoading(true)

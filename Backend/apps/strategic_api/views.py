@@ -19,7 +19,6 @@ from .serializers import StrategicChatRequestSerializer
 logger = logging.getLogger(__name__)
 
 
-#  helpers 
 
 def _error_payload(*, code: str, message: str, details=None, trace_id: str | None = None):
     payload = {"error": {"code": code, "message": message}}
@@ -59,7 +58,6 @@ def _dedupe_preserve_order(values: list) -> list:
     return out
 
 
-#  param parsing 
 
 def _coerce(value: str):
     raw = value.strip().rstrip(".,;")
@@ -127,7 +125,6 @@ def _p(val, default=0.0) -> float:
         return default
 
 
-#  SWOT helper 
 
 def _parse_swot_sections(text: str) -> dict:
     """Extract Strengths / Weaknesses / Opportunities / Threats from free text."""
@@ -261,7 +258,6 @@ def _build_swot_fallback_html(sw: dict, recs: list) -> str:
 """.strip()
 
 
-#  Business Goals helper 
 
 def _generate_business_goals_html(params: dict) -> str:
     """Compute business goal metrics and produce an HTML report."""
@@ -381,7 +377,6 @@ def _build_goals_fallback_html(metrics: dict, recs: list, performance: dict) -> 
 """.strip()
 
 
-#  CSV report formatter 
 
 def _format_csv_report_html(result: dict) -> str:
     if not isinstance(result, dict):
@@ -411,7 +406,6 @@ def _format_csv_report_html(result: dict) -> str:
     return _ensure_html(str(report_html or "No report generated."))
 
 
-#  API views 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class StrategicChatAPIView(APIView):

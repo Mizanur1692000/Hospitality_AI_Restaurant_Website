@@ -33,8 +33,6 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface KPIData {
   sales?: number;
   labor?: number;
@@ -61,8 +59,6 @@ interface CostSlice {
   value: number;
   color: string;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseCurrencyToNumber(value: string): number {
   const n = parseFloat(value.replace(/[^0-9.-]/g, ""));
@@ -95,8 +91,6 @@ function extractKPIData(message: string): KPIData {
   });
   return out;
 }
-
-// ─── Static Chart Data ────────────────────────────────────────────────────────
 
 const revenueData = [
   { week: "Week 1", revenue: 28500 },
@@ -131,8 +125,6 @@ const defaultCostSlices: CostSlice[] = [
   { name: "Profit", value: 17.0, color: "#10b981" },
 ];
 
-// ─── Chart Configs (shadcn/ui ChartConfig) ────────────────────────────────────
-
 const revenueConfig: ChartConfig = {
   revenue: { label: "Revenue", color: "#6366f1" },
 };
@@ -145,8 +137,6 @@ const radarConfig: ChartConfig = {
   current: { label: "Current", color: "#6366f1" },
   target: { label: "Target", color: "#10b981" },
 };
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 const VARIANT_STYLES = {
   good: {
@@ -250,8 +240,6 @@ function MessageBubble({ msg }: { msg: Message }) {
   );
 }
 
-// ─── Custom Donut Label ───────────────────────────────────────────────────────
-
 const RADIAN = Math.PI / 180;
 function renderCustomLabel({
   cx,
@@ -287,8 +275,6 @@ function renderCustomLabel({
   );
 }
 
-// ─── Initial Chat Message ─────────────────────────────────────────────────────
-
 const INITIAL_MESSAGE: Message = {
   id: "0",
   content: `Welcome to your KPI Dashboard! <strong>To get comprehensive analysis, provide your data</strong>:<br/><br/>
@@ -301,8 +287,6 @@ Example: "Run comprehensive analysis. Total sales: $50,000. Labor cost: $15,000.
   isUser: false,
   time: "Just now",
 };
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function KPIDashboard() {
   const [dateRange, setDateRange] = useState("30");
@@ -426,8 +410,6 @@ export default function KPIDashboard() {
 
   const clearChat = () => setMessages([INITIAL_MESSAGE]);
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/20 font-sans antialiased">
       {/* Ambient blobs */}
@@ -437,7 +419,6 @@ export default function KPIDashboard() {
       </div>
 
       <main className="relative z-10 mx-auto max-w-7xl px-6 py-10">
-        {/* ── Page Title ── */}
         <div className="text-center mb-12">
           <h1 className="bg-gradient-to-r from-[#C27AFF] via-[#51A2FF] to-[#C27AFF] bg-clip-text text-transparent text-4xl font-bold text-center mb-4">
             KPI Dashboard

@@ -140,8 +140,6 @@ task_registry.register_task("menu", "questions", "backend.consulting_services.me
 
 # Register the new Recipe Management tasks
 task_registry.register_task("recipe", "costing", "backend.consulting_services.recipe.costing")
-# TODO: Ingredient optimization not yet implemented - missing calculate_ingredient_optimization_analysis function
-# task_registry.register_task("recipe", "ingredient_optimization", "backend.consulting_services.menu.ingredient_optimization")
 task_registry.register_task("recipe", "scaling", "backend.consulting_services.recipe.scaling")
 
 # Register the new Strategic Planning tasks
