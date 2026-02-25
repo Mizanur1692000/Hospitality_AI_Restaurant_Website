@@ -501,9 +501,14 @@ class StrategicUploadAPIView(APIView):
         analysis_type = request.data.get("analysis_type", "").lower()
 
         try:
+            import csv as _csv_mod
+            import re as _re_mod
+
             from backend.consulting_services.strategy.strategic_csv_processor import (
                 process_business_goals_csv_data,
                 process_growth_strategy_csv_data,
+                process_sales_forecasting_csv_data,
+                process_operational_excellence_csv_data,
             )
 
             raw_bytes = required_csv.read()
@@ -511,9 +516,19 @@ class StrategicUploadAPIView(APIView):
             def _fresh():
                 return io.BytesIO(raw_bytes)
 
+            def _sniff_cols(data: bytes) -> set:
+                try:
+                    reader = _csv_mod.reader(io.StringIO(data.decode("utf-8", errors="replace")))
+                    header = next(reader, [])
+                    return {_re_mod.sub(r"[\s_-]+", "", c.strip().lower()) for c in header if c.strip()}
+                except Exception:
+                    return set()
+
+            def shas(k: str) -> bool:
+                return _re_mod.sub(r"[\s_-]+", "", k.lower()) in _sniff_cols(raw_bytes)
+
             # Route by analysis_type (card ID matches)
             if "swot" in analysis_type:
-                # No CSV processor for SWOT  guide the user
                 html_response = _ensure_html(
                     "SWOT analysis works from text input rather than CSV files.\n"
                     "Please type your SWOT data in the chat box:\n\n"
@@ -527,15 +542,43 @@ class StrategicUploadAPIView(APIView):
                 result = process_business_goals_csv_data(_fresh())
                 html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
 
-            elif "growth" in analysis_type or "scheduling" in analysis_type or "market" in analysis_type:
+            elif "growth" in analysis_type or "market" in analysis_type:
                 result = process_growth_strategy_csv_data(_fresh())
                 html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
 
+            elif "sales_forecast" in analysis_type or "forecast" in analysis_type:
+                result = process_sales_forecasting_csv_data(_fresh())
+                html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
+
+            elif "operational" in analysis_type or "excellence" in analysis_type:
+                result = process_operational_excellence_csv_data(_fresh())
+                html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
+
             else:
-                # Auto-detect: try business goals first, then growth strategy
-                result = process_business_goals_csv_data(_fresh())
-                if isinstance(result, dict) and result.get("status") == "error":
+                # Auto-detect by column signature
+                if shas("historical_sales") or shas("seasonal_factor") or shas("forecast_period") or shas("trend_strength"):
+                    result = process_sales_forecasting_csv_data(_fresh())
+                elif shas("efficiency_score") or shas("process_time") or shas("quality_rating") or shas("cost_per_unit") or shas("productivity_score") or shas("industry_benchmark"):
+                    result = process_operational_excellence_csv_data(_fresh())
+                elif shas("market_size") or shas("market_share") or shas("investment_budget") or shas("growth_potential") or shas("market_penetration") or shas("competition_level"):
                     result = process_growth_strategy_csv_data(_fresh())
+                elif shas("revenue_target") or shas("budget_total"):
+                    result = process_business_goals_csv_data(_fresh())
+                else:
+                    # Try all four; use first success
+                    result = None
+                    for fn in [
+                        process_business_goals_csv_data,
+                        process_growth_strategy_csv_data,
+                        process_sales_forecasting_csv_data,
+                        process_operational_excellence_csv_data,
+                    ]:
+                        attempt = fn(_fresh())
+                        if isinstance(attempt, dict) and attempt.get("status") == "success":
+                            result = attempt
+                            break
+                    if result is None:
+                        result = process_business_goals_csv_data(_fresh())
                 html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
 
             return Response({"html_response": _ensure_html(html_response)}, status=status.HTTP_200_OK)

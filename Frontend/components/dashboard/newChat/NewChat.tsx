@@ -229,23 +229,36 @@ function detectDomainFromCsvHeaders(headers: Set<string>): Domain {
   if (has("expected_oz") || has("actual_oz") || has("liquor_cost") || has("drink_price") || has("cost_per_drink")) return "beverage";
   if (has("current_stock") || has("reorder_point") || has("monthly_usage") || has("inventory_value")) return "beverage";
 
+  // Recipe — must come before menu because recipe CSVs share "portion_cost" / "servings"
+  // with menu schemas. Prioritise unambiguous recipe-specific columns first.
+  if (has("recipe_name") || has("recipe_price") || has("ingredient_cost")) return "recipe";
+  if (has("ingredients") || has("ingredient") || has("prep_time") || has("cook_time")) return "recipe";
+  if (has("servings") && (has("portion_cost") || has("labor_cost")) && !has("sales")) return "recipe";
+
   // Menu
   if (has("competitor_price") || has("contribution_margin") || has("sales_mix") || has("menu_item") || has("item_name")) return "menu";
   if (has("quantity_sold") || has("waste_percent") || has("portion_cost") || has("portion_size")) return "menu";
 
-  // Recipe
-  if (has("recipe_name") || has("ingredients") || has("ingredient") || has("servings") || has("prep_time") || has("cook_time")) return "recipe";
+  // KPI — must come before HR because KPI CSVs contain labor_hours/overtime_hours too.
+  // Unambiguous KPI-only signals first.
+  if (has("avg_check") || has("covers") || has("revpash") || has("prime_cost")) return "kpi";
+  if (has("beginning_inventory") || has("ending_inventory") || has("previous_sales")) return "kpi";
+  if (has("food_cost") && has("sales")) return "kpi";
+  if (has("sales") && has("labor_cost")) return "kpi";
+  if (has("food_cost") || has("prime_cost") || has("hours_worked")) return "kpi";
 
-  // HR
+  // HR — only after KPI so labor_hours+overtime_hours in KPI CSVs don't trigger HR.
   if (has("turnover_rate") || has("retention_rate") || has("employee_name") || has("attendance_rate") || has("shift")) return "hr";
   if (has("labor_hours") && (has("hourly_rate") || has("overtime_hours"))) return "hr";
 
-  // Strategic
-  if (has("revenue_target") || has("budget_total") || has("marketing_spend") || has("market_size") || has("market_share")) return "strategic";
-
-  // KPI
-  if (has("sales") && has("labor_cost")) return "kpi";
-  if (has("food_cost") || has("prime_cost") || has("labor_hours") || has("hours_worked")) return "kpi";
+  // Strategic — business_goals, growth_strategy, sales_forecasting, operational_excellence
+  if (has("revenue_target") || has("budget_total") || has("marketing_spend")) return "strategic";
+  if (has("market_size") || has("market_share") || has("competition_level") || has("investment_budget")) return "strategic";
+  if (has("growth_potential") || has("market_penetration") || has("target_roi")) return "strategic";
+  if (has("historical_sales") || has("seasonal_factor") || has("forecast_period") || has("trend_strength")) return "strategic";
+  if (has("market_growth") || has("confidence_level") || has("growth_rate")) return "strategic";
+  if (has("efficiency_score") || has("process_time") || has("quality_rating") || has("customer_satisfaction")) return "strategic";
+  if (has("cost_per_unit") || has("productivity_score") || has("industry_benchmark")) return "strategic";
 
   return "kpi"; // default to KPI endpoint (it returns helpful column mismatch messages)
 }
@@ -572,7 +585,7 @@ export default function NewChat() {
               if (files.length) handleCsvUpload(files);
             }}
           />
-          <div className="flex gap-2 items-center bg-gray-100 dark:bg-[#1E2939] rounded-xl px-4 py-3 border border-gray-300 dark:border-gray-700">
+          <div className="flex z-10 gap-2 items-center bg-gray-100 dark:bg-[#1E2939] rounded-xl px-4 py-3 border border-gray-300 dark:border-gray-700">
             <Button
               variant="ghost"
               size="icon"

@@ -1725,7 +1725,7 @@ def process_kpi_csv_data(csv_file) -> Dict[str, Any]:
 
         return {
             "status": "success",
-            "file_info": csv_file.name,
+            "file_info": getattr(csv_file, "name", "uploaded_file.csv"),
             "period_analyzed": f"{len(daily_kpis)} days",
             "summary": {
                 "total_sales": f"${total_sales:,.2f}",

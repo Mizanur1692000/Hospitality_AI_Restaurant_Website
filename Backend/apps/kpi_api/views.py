@@ -341,6 +341,198 @@ def _ensure_html(text_or_html: str) -> str:
     return f"<div><pre style=\"white-space:pre-wrap\">{html.escape(candidate)}</pre></div>"
 
 
+def _detect_domain_from_csv_bytes(raw_bytes: bytes) -> str:
+    """Sniff CSV headers to determine which domain processor should handle the file.
+    Returns one of: 'kpi', 'menu', 'recipe', 'beverage', 'hr', 'strategic'.
+    """
+    try:
+        import csv as _csv
+        import io as _io
+
+        reader = _csv.reader(_io.StringIO(raw_bytes.decode("utf-8", errors="replace")))
+        raw_header = next(reader, []) or []
+        cols = {re.sub(r"[\s_-]+", "", c.strip().lower()) for c in raw_header if c.strip()}
+
+        def has(k: str) -> bool:
+            return re.sub(r"[\s_-]+", "", k.lower()) in cols
+
+        # Beverage
+        if has("expected_oz") or has("actual_oz") or has("liquor_cost") or has("drink_price") or has("cost_per_drink"):
+            return "beverage"
+        if has("current_stock") or has("reorder_point") or has("inventory_value") or has("monthly_usage"):
+            return "beverage"
+
+        # Recipe — check before menu to avoid portion_cost / servings collision
+        if has("recipe_name") or has("recipe_price") or has("ingredient_cost"):
+            return "recipe"
+        if has("ingredients") or has("ingredient") or has("prep_time") or has("cook_time"):
+            return "recipe"
+        if has("servings") and (has("portion_cost") or has("labor_cost")) and not has("sales"):
+            return "recipe"
+
+        # Menu
+        if has("competitor_price") or has("contribution_margin") or has("menu_item") or has("item_name"):
+            return "menu"
+        if has("quantity_sold") or has("waste_percent") or has("portion_cost") or has("portion_size"):
+            return "menu"
+
+        # KPI — check before HR because KPI CSVs can contain labor_hours/overtime_hours
+        if has("avg_check") or has("covers") or has("revpash") or has("prime_cost"):
+            return "kpi"
+        if has("beginning_inventory") or has("ending_inventory") or has("previous_sales"):
+            return "kpi"
+        if has("food_cost") and has("sales"):
+            return "kpi"
+        if has("sales") and has("labor_cost"):
+            return "kpi"
+        if has("food_cost") or has("hours_worked"):
+            return "kpi"
+
+        # HR
+        if has("turnover_rate") or has("retention_rate") or has("employee_name") or has("attendance_rate") or has("shift"):
+            return "hr"
+        if has("labor_hours") and (has("hourly_rate") or has("overtime_hours")):
+            return "hr"
+
+        # Strategic — business_goals, growth_strategy, sales_forecasting, operational_excellence
+        if has("revenue_target") or has("budget_total") or has("marketing_spend"):
+            return "strategic"
+        if has("market_size") or has("market_share") or has("competition_level") or has("investment_budget"):
+            return "strategic"
+        if has("growth_potential") or has("market_penetration") or has("target_roi"):
+            return "strategic"
+        if has("historical_sales") or has("seasonal_factor") or has("forecast_period") or has("trend_strength"):
+            return "strategic"
+        if has("market_growth") or has("confidence_level") or has("growth_rate"):
+            return "strategic"
+        if has("efficiency_score") or has("process_time") or has("quality_rating") or has("customer_satisfaction"):
+            return "strategic"
+        if has("cost_per_unit") or has("productivity_score") or has("industry_benchmark"):
+            return "strategic"
+
+        return "kpi"
+    except Exception:
+        return "kpi"
+
+
+def _delegate_csv_to_domain(domain: str, raw_bytes: bytes) -> "str | None":
+    """Process a non-KPI CSV using the correct domain processor.
+    Returns an html_response string, or None if delegation fails (caller falls back to KPI).
+    """
+    import io as _io
+    import re as _re
+
+    def fresh():
+        return _io.BytesIO(raw_bytes)
+
+    try:
+        if domain == "menu":
+            from backend.consulting_services.menu.pricing_csv_processor import process_pricing_csv_data
+            from backend.consulting_services.menu.optimization_csv_processor import process_optimization_csv_data
+            from backend.consulting_services.menu.design_csv_processor import process_design_csv_data
+            from apps.menu_api.views import _format_menu_csv_report_html
+            from apps.menu_api.views import _ensure_html as _menu_html
+
+            import csv as _csv2
+            reader = _csv2.reader(_io.StringIO(raw_bytes.decode("utf-8", errors="replace")))
+            hcols = {_re.sub(r"[\s_-]+", "", c.strip().lower()) for c in (next(reader, []) or []) if c.strip()}
+
+            def hhas(k):
+                return _re.sub(r"[\s_-]+", "", k.lower()) in hcols
+
+            if hhas("competitor_price"):
+                result = process_pricing_csv_data(fresh())
+            elif hhas("waste_percent") or hhas("portion_size") or hhas("portion_cost") or hhas("description"):
+                result = process_optimization_csv_data(fresh())
+            else:
+                result = process_design_csv_data(fresh())
+
+            body = _format_menu_csv_report_html(result or {})
+            return f"<div><h2>Menu Engineering (CSV)</h2>{_menu_html(str(body))}</div>"
+
+        if domain == "recipe":
+            from backend.consulting_services.recipe.analysis_functions import process_recipe_csv_data
+            from apps.recipe_api.views import _format_csv_report_html as _fmt_recipe
+            from apps.recipe_api.views import _ensure_html as _recipe_html
+
+            result = process_recipe_csv_data(fresh())
+            body = _fmt_recipe(result if isinstance(result, dict) else {})
+            return f"<div><h2>Recipe Intelligence (CSV)</h2>{_recipe_html(str(body))}</div>"
+
+        if domain == "beverage":
+            from apps.beverage_api.views import _format_beverage_csv_report_html
+            from apps.beverage_api.views import _ensure_html as _bev_html
+            from backend.consulting_services.beverage.beverage_pricing_csv_processor import process_beverage_pricing_csv_data
+
+            result = process_beverage_pricing_csv_data(fresh())
+            body = _format_beverage_csv_report_html(result if isinstance(result, dict) else {})
+            return f"<div><h2>Beverage Insights (CSV)</h2>{_bev_html(str(body))}</div>"
+
+        if domain == "hr":
+            from backend.consulting_services.hr.hr_csv_processor import process_hr_csv_data
+            from apps.hr_api.views import _format_hr_csv_report_html, _format_hr_dashboard_like_html
+            from apps.hr_api.views import _ensure_html as _hr_html
+
+            result = process_hr_csv_data(fresh(), analysis_type="auto")
+            body = _format_hr_csv_report_html(result)
+            wrapped = _format_hr_dashboard_like_html(
+                subtask=str(result.get("analysis_type") or "performance_management"),
+                result={"data": {"business_report_html": body}, "status": "success"},
+            )
+            return f"<div><h2>HR Optimization (CSV)</h2>{_hr_html(str(wrapped))}</div>"
+
+        if domain == "strategic":
+            from backend.consulting_services.strategy.strategic_csv_processor import (
+                process_business_goals_csv_data,
+                process_growth_strategy_csv_data,
+                process_sales_forecasting_csv_data,
+                process_operational_excellence_csv_data,
+            )
+            from apps.strategic_api.views import _format_csv_report_html as _fmt_strategic
+            from apps.strategic_api.views import _ensure_html as _strat_html
+
+            import csv as _csv3
+            reader3 = _csv3.reader(_io.StringIO(raw_bytes.decode("utf-8", errors="replace")))
+            scols = {_re.sub(r"[\s_-]+", "", c.strip().lower()) for c in (next(reader3, []) or []) if c.strip()}
+
+            def shas(k):
+                return _re.sub(r"[\s_-]+", "", k.lower()) in scols
+
+            # Route to the right sub-processor by column signature
+            if shas("historical_sales") or shas("seasonal_factor") or shas("forecast_period") or shas("trend_strength"):
+                result = process_sales_forecasting_csv_data(fresh())
+            elif shas("efficiency_score") or shas("process_time") or shas("quality_rating") or shas("cost_per_unit") or shas("productivity_score") or shas("industry_benchmark"):
+                result = process_operational_excellence_csv_data(fresh())
+            elif shas("market_size") or shas("market_share") or shas("investment_budget") or shas("growth_potential") or shas("market_penetration") or shas("competition_level"):
+                result = process_growth_strategy_csv_data(fresh())
+            elif shas("revenue_target") or shas("budget_total"):
+                result = process_business_goals_csv_data(fresh())
+            else:
+                # Try all four in order; use first success
+                result = None
+                for fn in [
+                    process_business_goals_csv_data,
+                    process_growth_strategy_csv_data,
+                    process_sales_forecasting_csv_data,
+                    process_operational_excellence_csv_data,
+                ]:
+                    attempt = fn(fresh())
+                    if isinstance(attempt, dict) and attempt.get("status") == "success":
+                        result = attempt
+                        break
+                if result is None:
+                    result = process_business_goals_csv_data(fresh())
+
+            body = _fmt_strategic(result if isinstance(result, dict) else {})
+            return f"<div><h2>Strategic Planning (CSV)</h2>{_strat_html(str(body))}</div>"
+
+    except Exception as exc:
+        logger.warning("CSV auto-routing to domain '%s' failed: %s", domain, exc)
+        return None
+
+    return None
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class KpiChatAPIView(APIView):
     authentication_classes: list = []
@@ -405,9 +597,12 @@ class KpiUploadAPIView(APIView):
         optional_csv = serializer.validated_data.get("optional_csv")
 
         try:
+            import io as _io
             from backend.consulting_services.kpi.kpi_utils import process_kpi_csv_data
 
-            required_result = process_kpi_csv_data(required_csv)
+            raw_bytes = required_csv.read()
+
+            required_result = process_kpi_csv_data(_io.BytesIO(raw_bytes))
             required_html = (
                 _format_kpi_csv_report_html(required_result)
                 if isinstance(required_result, dict)
@@ -421,13 +616,14 @@ class KpiUploadAPIView(APIView):
             ]
 
             if optional_csv is not None:
-                optional_result = process_kpi_csv_data(optional_csv)
+                opt_bytes = optional_csv.read()
+
+                optional_result = process_kpi_csv_data(_io.BytesIO(opt_bytes))
                 optional_html = (
                     _format_kpi_csv_report_html(optional_result)
                     if isinstance(optional_result, dict)
                     else _ensure_html(str(optional_result))
                 )
-
                 combined_html_parts.extend(
                     [
                         "<hr />",
