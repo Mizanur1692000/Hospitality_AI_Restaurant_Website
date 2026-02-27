@@ -3,6 +3,7 @@ HR Staff Retention Analysis Task
 Analyzes turnover rates and provides retention strategies with comprehensive business report.
 """
 
+from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
 from backend.shared.utils.common import success_payload, error_payload, require, validate_positive_numbers
 
 
@@ -144,6 +145,28 @@ def run(params: dict, file_bytes: bytes | None = None) -> tuple[dict, int]:
                 seen.add(key)
                 deduped.append(s)
             recommendations = deduped
+
+        ai_recommendations = generate_ai_strategic_recommendations(
+            analysis_type="HR Staff Retention Analysis",
+            metrics={
+                "turnover_rate": round(turnover_rate, 1),
+                "retention_rate": round(retention_rate, 1),
+                "industry_average": round(industry_average, 1),
+                "vs_industry": round(vs_industry, 1),
+                "estimated_annual_turnover_cost": round(estimated_annual_turnover_cost, 2),
+            },
+            performance={
+                "rating": performance,
+                "color": performance_color,
+                "risk_level": risk_level,
+            },
+            benchmarks=benchmarks,
+            additional_data=additional_insights,
+            existing_recommendations=recommendations,
+            max_items=6,
+        )
+        if ai_recommendations:
+            recommendations = ai_recommendations
 
         # Generate business report HTML
         recs_html = ''.join([f'<li>{rec}</li>' for rec in recommendations])

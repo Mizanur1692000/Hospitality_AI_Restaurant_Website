@@ -3,6 +3,7 @@ HR Labor Scheduling Analysis Task
 Analyzes scheduling efficiency and provides optimization strategies with comprehensive business report.
 """
 
+from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
 from backend.shared.utils.common import success_payload, error_payload, require, validate_positive_numbers
 
 
@@ -163,6 +164,32 @@ def run(params: dict, file_bytes: bytes | None = None) -> tuple[dict, int]:
                 seen.add(key)
                 deduped.append(s)
             recommendations = deduped
+
+        ai_recommendations = generate_ai_strategic_recommendations(
+            analysis_type="HR Labor Scheduling Analysis",
+            metrics={
+                "total_sales": round(total_sales, 2),
+                "labor_hours": round(labor_hours, 1),
+                "hourly_rate": round(hourly_rate, 2),
+                "total_labor_cost": round(total_labor_cost, 2),
+                "sales_per_hour": round(sales_per_hour, 2),
+                "labor_percent": round(labor_percent, 2),
+                "peak_hours": round(peak_hours, 1),
+                "off_peak_hours": round(off_peak_hours, 1),
+                "peak_efficiency_percent": round(peak_efficiency, 1),
+                "target_labor_percent": round(target_labor_percent, 1),
+                "potential_savings": round(potential_savings, 2),
+                "additional_sales_needed": round(additional_sales_needed, 2),
+                "hours_to_cut": round(hours_to_cut, 1),
+            },
+            performance=performance_data,
+            benchmarks=benchmarks,
+            additional_data=additional_insights,
+            existing_recommendations=recommendations,
+            max_items=6,
+        )
+        if ai_recommendations:
+            recommendations = ai_recommendations
 
         # Generate business report HTML (compacted to avoid \n in JSON)
         recs_html = ''.join([f'<li>{rec}</li>' for rec in recommendations])

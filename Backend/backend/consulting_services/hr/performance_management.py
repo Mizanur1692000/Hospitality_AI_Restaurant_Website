@@ -3,6 +3,7 @@ HR Performance Management Analysis Task
 Analyzes staff performance metrics and provides improvement strategies with comprehensive business report.
 """
 
+from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
 from backend.shared.utils.common import success_payload, error_payload, require, validate_positive_numbers
 
 
@@ -182,6 +183,31 @@ def run(params: dict, file_bytes: bytes | None = None) -> tuple[dict, int]:
                 seen.add(key)
                 deduped.append(s)
             recommendations = deduped
+
+        ai_recommendations = generate_ai_strategic_recommendations(
+            analysis_type="HR Performance Management Analysis",
+            metrics={
+                "overall_score": round(overall_score, 1),
+                "customer_satisfaction": round(customer_satisfaction, 1),
+                "sales_performance": round(sales_performance, 1),
+                "efficiency_score": round(efficiency_score, 1),
+                "attendance_rate": round(attendance_rate, 1),
+                "customer_satisfaction_target": round(customer_satisfaction_target, 1),
+                "sales_performance_target": round(sales_performance_target, 1),
+                "efficiency_target": round(efficiency_target, 1),
+                "attendance_target": round(attendance_target, 1),
+            },
+            performance={
+                "rating": performance,
+                "color": performance_color,
+            },
+            benchmarks=benchmarks,
+            additional_data=additional_insights,
+            existing_recommendations=recommendations,
+            max_items=6,
+        )
+        if ai_recommendations:
+            recommendations = ai_recommendations
 
         # Generate business report HTML (compacted to avoid \n in JSON)
         recs_html = ''.join([f'<li>{rec}</li>' for rec in recommendations])

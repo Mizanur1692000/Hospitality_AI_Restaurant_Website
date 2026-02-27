@@ -17,6 +17,8 @@ from rest_framework.views import APIView
 
 from .serializers import MenuChatRequestSerializer
 
+from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
+
 logger = logging.getLogger(__name__)
 
 
@@ -404,6 +406,38 @@ def _generate_pricing_strategy_html(params: dict) -> str:
     if "profit" in include_text.lower():
         recs.append("Profit maximization: Monitor weekly contribution margin trends and test price changes in low-traffic periods.")
 
+    ai_recs = generate_ai_strategic_recommendations(
+        analysis_type="Menu Pricing Strategy",
+        metrics={
+            "item_name": item_name,
+            "category": category,
+            "current_price": round(item_price, 2),
+            "item_cost": round(item_cost, 2),
+            "food_cost_percent": round(food_cost_pct, 1),
+            "target_food_cost_percent": round(target_food_cost, 1),
+            "contribution_margin": round(contribution_margin, 2),
+            "optimal_price": round(optimal_price, 2),
+            "price_gap_vs_optimal": round(price_gap, 2),
+            "competitor_price": round(competitor_price, 2) if competitor_price else None,
+            "vs_competitor_percent": round(vs_competitor_pct, 1) if competitor_price else None,
+            "price_elasticity_index": elasticity,
+        },
+        performance={
+            "rating": rating,
+            "positioning": positioning,
+            "elasticity": elasticity_desc,
+        },
+        benchmarks={
+            "target_food_cost_range": "28-32%",
+            "competitive_tolerance": "±10%",
+        },
+        additional_data={"focus_on": include_text},
+        existing_recommendations=recs,
+        max_items=6,
+    )
+    if ai_recs:
+        recs = ai_recs
+
     parts = [
         '<section class="report">',
         '<header class="report__header">',
@@ -509,6 +543,39 @@ def _generate_item_optimization_html(params: dict) -> str:
         recs.append("Recipe costing: Re-cost recipe quarterly to account for ingredient price fluctuations.")
     if "portion control" in include_text.lower():
         recs.append("Portion control: Use portion scales or pre-portioned containers to eliminate cook-level variation.")
+
+    ai_recs = generate_ai_strategic_recommendations(
+        analysis_type="Menu Item Optimization",
+        metrics={
+            "item_name": item_name,
+            "category": category,
+            "quantity_sold": round(qty_sold, 2),
+            "item_cost": round(item_cost, 2),
+            "portion_cost": round(portion_cost, 2) if portion_cost else None,
+            "waste_percent": round(waste_pct, 1),
+            "effective_cost": round(effective_cost, 2),
+            "waste_cost_per_unit": round(waste_cost_per_unit, 2),
+            "total_waste_cost": round(total_waste_cost, 2),
+            "cost_savings_potential": round(cost_savings_potential, 2),
+            "description_rating": desc_rating,
+        },
+        performance={
+            "rating": rating,
+            "description_tip": desc_tip,
+        },
+        benchmarks={
+            "target_waste_percent": "≤5%",
+        },
+        additional_data={
+            "portion_size": portion_size,
+            "recipe_ingredients": recipe_ingredients,
+            "include": include_text,
+        },
+        existing_recommendations=recs,
+        max_items=6,
+    )
+    if ai_recs:
+        recs = ai_recs
 
     parts = [
         '<section class="report">',

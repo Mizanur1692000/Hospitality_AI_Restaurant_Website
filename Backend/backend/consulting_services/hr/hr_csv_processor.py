@@ -7,6 +7,8 @@ import io
 from typing import Any, Dict, List
 import pandas as pd
 
+from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
+
 from backend.consulting_services.hr.staff_retention import run as run_retention
 from backend.consulting_services.hr.labor_scheduling import run as run_scheduling
 from backend.consulting_services.hr.performance_management import run as run_performance
@@ -511,8 +513,23 @@ ANALYSIS BY DEPARTMENT:
     for r in results[:3]:  # Take recommendations from first 3 results
         for rec in r.get("insights", [])[:2]:
             all_recs.add(rec)
+
+    seed_recommendations = [str(r).strip() for r in list(all_recs) if str(r).strip()]
+    ai_recommendations = generate_ai_strategic_recommendations(
+        analysis_type="HR Staff Retention Summary",
+        metrics={
+            "records_analyzed": len(results),
+            "average_turnover_rate": round(avg_turnover, 1),
+            "average_retention_rate": round(avg_retention, 1),
+            "total_estimated_annual_turnover_cost": round(total_cost, 2),
+        },
+        additional_data={"department_count": len(departments)},
+        existing_recommendations=seed_recommendations,
+        max_items=5,
+    )
+    final_recommendations = ai_recommendations or seed_recommendations
     
-    for i, rec in enumerate(list(all_recs)[:5], 1):
+    for i, rec in enumerate(final_recommendations[:5], 1):
         report += f"{i}. {rec}\n"
     
     return report.strip()
@@ -556,8 +573,24 @@ PERFORMANCE BREAKDOWN:
     for r in results[:3]:
         for rec in r.get("insights", [])[:2]:
             all_recs.add(rec)
+
+    seed_recommendations = [str(r).strip() for r in list(all_recs) if str(r).strip()]
+    ai_recommendations = generate_ai_strategic_recommendations(
+        analysis_type="HR Labor Scheduling Summary",
+        metrics={
+            "records_analyzed": len(results),
+            "total_sales": round(total_sales, 2),
+            "total_labor_hours": round(total_hours, 1),
+            "total_labor_cost": round(total_labor_cost, 2),
+            "average_labor_percent": round(avg_labor_pct, 1),
+        },
+        additional_data={"ratings_breakdown": ratings},
+        existing_recommendations=seed_recommendations,
+        max_items=5,
+    )
+    final_recommendations = ai_recommendations or seed_recommendations
     
-    for i, rec in enumerate(list(all_recs)[:5], 1):
+    for i, rec in enumerate(final_recommendations[:5], 1):
         report += f"{i}. {rec}\n"
     
     return report.strip()
@@ -605,8 +638,20 @@ INDIVIDUAL PERFORMANCE:
     for r in results[:3]:
         for rec in r.get("insights", [])[:2]:
             all_recs.add(rec)
+
+    seed_recommendations = [str(r).strip() for r in list(all_recs) if str(r).strip()]
+    ai_recommendations = generate_ai_strategic_recommendations(
+        analysis_type="HR Performance Management Summary",
+        metrics={
+            "records_analyzed": len(results),
+            "average_overall_score": round(avg_score, 1),
+        },
+        existing_recommendations=seed_recommendations,
+        max_items=5,
+    )
+    final_recommendations = ai_recommendations or seed_recommendations
     
-    for i, rec in enumerate(list(all_recs)[:5], 1):
+    for i, rec in enumerate(final_recommendations[:5], 1):
         report += f"{i}. {rec}\n"
     
     return report.strip()
@@ -645,7 +690,23 @@ def _generate_performance_summary_report_html(results: List[Dict]) -> str:
     for r in results[:3]:
         for rec in r.get("insights", [])[:2]:
             all_recs.add(rec)
-    recs_html = ''.join([f'<li>{rec}</li>' for rec in list(all_recs)[:5]])
+
+    seed_recommendations = [str(r).strip() for r in list(all_recs) if str(r).strip()]
+    ai_recommendations = generate_ai_strategic_recommendations(
+        analysis_type="HR Performance Management Summary",
+        metrics={
+            "records_analyzed": len(results),
+            "average_overall_score": round(avg_score, 1),
+            "average_customer_satisfaction": round(avg_csat, 1),
+            "average_sales_performance": round(avg_sales, 1),
+            "average_efficiency_score": round(avg_efficiency, 1),
+            "average_attendance_rate": round(avg_attendance, 1),
+        },
+        existing_recommendations=seed_recommendations,
+        max_items=5,
+    )
+    final_recommendations = ai_recommendations or seed_recommendations
+    recs_html = ''.join([f'<li>{rec}</li>' for rec in final_recommendations[:5]])
 
     return (
         '<section class="report" style="border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.06);">'

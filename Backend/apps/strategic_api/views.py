@@ -204,6 +204,31 @@ def _generate_swot_html(message: str) -> str:
 
 def _build_swot_fallback_html(sw: dict, recs: list) -> str:
     """Minimal fallback SWOT HTML if the backend utility is unavailable."""
+    try:
+        from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
+
+        ai_recs = generate_ai_strategic_recommendations(
+            analysis_type="SWOT Analysis",
+            metrics={
+                "strengths_count": len(sw.get("strengths", []) or []),
+                "weaknesses_count": len(sw.get("weaknesses", []) or []),
+                "opportunities_count": len(sw.get("opportunities", []) or []),
+                "threats_count": len(sw.get("threats", []) or []),
+            },
+            additional_data={
+                "strengths": sw.get("strengths", []) or [],
+                "weaknesses": sw.get("weaknesses", []) or [],
+                "opportunities": sw.get("opportunities", []) or [],
+                "threats": sw.get("threats", []) or [],
+            },
+            existing_recommendations=[str(r).strip() for r in (recs or []) if str(r).strip()],
+            max_items=6,
+        )
+        if ai_recs:
+            recs = ai_recs
+    except Exception:
+        pass
+
     def _list_items(items):
         if not items:
             return "<li>None provided</li>"
@@ -349,6 +374,21 @@ def _generate_business_goals_html(params: dict) -> str:
 
 
 def _build_goals_fallback_html(metrics: dict, recs: list, performance: dict) -> str:
+    try:
+        from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
+
+        ai_recs = generate_ai_strategic_recommendations(
+            analysis_type="Business Goals Analysis",
+            metrics=metrics or {},
+            performance=performance or {},
+            existing_recommendations=[str(r).strip() for r in (recs or []) if str(r).strip()],
+            max_items=6,
+        )
+        if ai_recs:
+            recs = ai_recs
+    except Exception:
+        pass
+
     recs_html = "".join(f"<li>{html.escape(r)}</li>" for r in recs)
     rows = "".join(
         f"<tr><td><strong>{html.escape(str(k))}</strong></td>"

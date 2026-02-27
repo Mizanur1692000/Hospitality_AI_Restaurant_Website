@@ -207,6 +207,44 @@ def format_business_report(analysis_type, metrics, performance, recommendations,
                 bench_lines.append(f"{k.replace('_', ' ').title()}: {v}")
 
     recommendations = _dedupe_preserve_order(recommendations)
+
+    # AI-power the Strategic Recommendations section when configured.
+    # Numeric calculations remain deterministic (computed upstream); AI is used only for narrative actions.
+    try:
+        if isinstance(recommendations, list):
+            existing_rec_strings = []
+            for r in recommendations:
+                if isinstance(r, str):
+                    existing_rec_strings.append(r)
+                elif isinstance(r, dict):
+                    # Best-effort stringify for context; this formatter primarily expects strings.
+                    parts = []
+                    if r.get("category"):
+                        parts.append(str(r.get("category")))
+                    if r.get("action"):
+                        parts.append(str(r.get("action")))
+                    if r.get("impact"):
+                        parts.append(f"Impact: {r.get('impact')}")
+                    existing_rec_strings.append(" - ".join(parts) if parts else str(r))
+                else:
+                    existing_rec_strings.append(str(r))
+
+            from backend.shared.ai.strategic_recommendations import generate_ai_strategic_recommendations
+
+            ai_recs = generate_ai_strategic_recommendations(
+                analysis_type=str(analysis_type),
+                metrics=metrics if isinstance(metrics, dict) else {"metrics": metrics},
+                performance=performance if isinstance(performance, dict) else {"performance": performance},
+                benchmarks=benchmarks if isinstance(benchmarks, dict) else {"benchmarks": benchmarks},
+                additional_data=additional_data if isinstance(additional_data, dict) else {"additional": additional_data},
+                existing_recommendations=existing_rec_strings,
+                max_items=min(6, len(existing_rec_strings) or 6),
+            )
+            if ai_recs:
+                recommendations = ai_recs
+    except Exception:
+        pass
+
     rec_lines = [f"{i}. {r}" for i, r in enumerate(recommendations, 1)]
 
     add_lines = []
@@ -584,7 +622,10 @@ def calculate_labor_cost_analysis(total_sales, labor_cost, hours_worked, target_
     
     # Calculate total savings opportunities (combine all sources)
     savings_from_target = round(potential_savings, 2) if potential_savings > 0 else 0
-    savings_from_overtime = round(overtime_premium_cost, 2) if overtime_percent > 5 else 0
+    # Overtime premium is a direct, quantifiable savings opportunity when overtime exists.
+    # Previously this was suppressed unless overtime was >5%, which caused legitimate overtime inputs
+    # (e.g., exactly 5%) to incorrectly display as 0 in the Savings Opportunities card.
+    savings_from_overtime = round(overtime_premium_cost, 2) if actual_overtime_hours > 0 else 0
     savings_from_efficiency = round(labor_cost * 0.05, 2) if sales_per_labor_hour < 50 else 0
     total_savings_opportunity = savings_from_target + savings_from_overtime + savings_from_efficiency
 
@@ -1808,6 +1849,26 @@ def generate_kpi_recommendations(labor_percent, food_percent, prime_percent, sal
                 "impact": "Your KPIs are within industry standards",
             }
         )
+
+    # AI-refine the cards (keep impact EXACTLY unchanged).
+    try:
+        from backend.shared.ai.strategic_recommendations import refine_recommendation_cards
+
+        refined = refine_recommendation_cards(
+            context={
+                "analysis_type": "KPI Summary Recommendations",
+                "labor_percent": labor_percent,
+                "food_percent": food_percent,
+                "prime_percent": prime_percent,
+                "sales_per_hour": sales_per_hour,
+            },
+            cards=recommendations,
+            max_items=len(recommendations),
+        )
+        if refined:
+            recommendations = refined
+    except Exception:
+        pass
 
     return recommendations
 
