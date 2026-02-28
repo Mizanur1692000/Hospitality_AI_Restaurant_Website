@@ -564,11 +564,82 @@ class StrategicUploadAPIView(APIView):
                 except Exception:
                     return set()
 
-            def shas(k: str) -> bool:
-                return _re_mod.sub(r"[\s_-]+", "", k.lower()) in _sniff_cols(raw_bytes)
+            cols = _sniff_cols(raw_bytes)
 
-            # Route by analysis_type (card ID matches)
-            if "swot" in analysis_type:
+            def shas(k: str) -> bool:
+                return _re_mod.sub(r"[\s_-]+", "", k.lower()) in cols
+
+            def _detected_kind() -> str | None:
+                # Business goals first — revenue_target / budget_total are unambiguous.
+                # target_roi appears in both business_goals and growth_strategy CSVs,
+                # so it must NOT be a standalone trigger for growth_strategy.
+                if shas("revenue_target") or shas("budget_total"):
+                    return "business_goals"
+                if (
+                    shas("historical_sales")
+                    or shas("current_sales")
+                    or shas("seasonal_factor")
+                    or shas("forecast_period")
+                    or shas("forecast_periods")
+                    or shas("trend_strength")
+                ):
+                    return "sales_forecasting"
+                if (
+                    shas("efficiency_score")
+                    or shas("process_time")
+                    or shas("quality_rating")
+                    or shas("cost_per_unit")
+                    or shas("productivity_score")
+                    or shas("employee_productivity")
+                    or shas("industry_benchmark")
+                    or shas("benchmark_score")
+                ):
+                    return "operational_excellence"
+                if (
+                    shas("market_size")
+                    or shas("market_share")
+                    or shas("investment_budget")
+                    or shas("growth_potential")
+                    or shas("market_penetration")
+                    or shas("competition_level")
+                ):
+                    return "growth_strategy"
+                # target_roi / roi_target alone → growth_strategy only when
+                # no stronger match exists (business_goals already checked above).
+                if shas("target_roi") or shas("roi_target"):
+                    return "growth_strategy"
+                return None
+
+            detected = _detected_kind()
+
+            def _hinted_kind() -> str | None:
+                t = (analysis_type or "").strip().lower()
+                if not t or t == "auto":
+                    return None
+                if "business_goals" in t or "performance" in t:
+                    return "business_goals"
+                if "growth" in t or "market" in t:
+                    return "growth_strategy"
+                if "sales_forecast" in t or "forecast" in t:
+                    return "sales_forecasting"
+                if "operational" in t or "excellence" in t:
+                    return "operational_excellence"
+                if "swot" in t:
+                    return "swot"
+                return None
+
+            hinted = _hinted_kind()
+
+            processors = {
+                "business_goals": process_business_goals_csv_data,
+                "growth_strategy": process_growth_strategy_csv_data,
+                "sales_forecasting": process_sales_forecasting_csv_data,
+                "operational_excellence": process_operational_excellence_csv_data,
+            }
+
+            # Treat analysis_type as a hint, not a hard override.
+            # Only return SWOT text guidance if the CSV does NOT match any supported strategic CSV schemas.
+            if hinted == "swot" and detected is None:
                 html_response = _ensure_html(
                     "SWOT analysis works from text input rather than CSV files.\n"
                     "Please type your SWOT data in the chat box:\n\n"
@@ -577,48 +648,32 @@ class StrategicUploadAPIView(APIView):
                     "Opportunities: catering, online ordering; "
                     "Threats: new competitors, rising food costs."
                 )
-
-            elif "business_goals" in analysis_type or "performance" in analysis_type:
-                result = process_business_goals_csv_data(_fresh())
-                html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
-
-            elif "growth" in analysis_type or "market" in analysis_type:
-                result = process_growth_strategy_csv_data(_fresh())
-                html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
-
-            elif "sales_forecast" in analysis_type or "forecast" in analysis_type:
-                result = process_sales_forecasting_csv_data(_fresh())
-                html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
-
-            elif "operational" in analysis_type or "excellence" in analysis_type:
-                result = process_operational_excellence_csv_data(_fresh())
-                html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
-
             else:
-                # Auto-detect by column signature
-                if shas("historical_sales") or shas("seasonal_factor") or shas("forecast_period") or shas("trend_strength"):
-                    result = process_sales_forecasting_csv_data(_fresh())
-                elif shas("efficiency_score") or shas("process_time") or shas("quality_rating") or shas("cost_per_unit") or shas("productivity_score") or shas("industry_benchmark"):
-                    result = process_operational_excellence_csv_data(_fresh())
-                elif shas("market_size") or shas("market_share") or shas("investment_budget") or shas("growth_potential") or shas("market_penetration") or shas("competition_level"):
-                    result = process_growth_strategy_csv_data(_fresh())
-                elif shas("revenue_target") or shas("budget_total"):
-                    result = process_business_goals_csv_data(_fresh())
-                else:
-                    # Try all four; use first success
-                    result = None
-                    for fn in [
-                        process_business_goals_csv_data,
-                        process_growth_strategy_csv_data,
-                        process_sales_forecasting_csv_data,
-                        process_operational_excellence_csv_data,
-                    ]:
-                        attempt = fn(_fresh())
-                        if isinstance(attempt, dict) and attempt.get("status") == "success":
-                            result = attempt
-                            break
-                    if result is None:
-                        result = process_business_goals_csv_data(_fresh())
+                order: list[str] = []
+                for k in [hinted, detected, "business_goals", "growth_strategy", "sales_forecasting", "operational_excellence"]:
+                    if k and k != "swot" and k not in order:
+                        order.append(k)
+
+                result = None
+                first_error = None
+                for kind in order:
+                    fn = processors.get(kind)
+                    if not fn:
+                        continue
+                    attempt = fn(_fresh())
+                    if isinstance(attempt, dict) and attempt.get("status") == "success":
+                        result = attempt
+                        break
+                    if first_error is None:
+                        first_error = attempt
+
+                if result is None:
+                    result = first_error if isinstance(first_error, dict) else {
+                        "status": "error",
+                        "message": "Could not process this strategic CSV. Please verify the header columns.",
+                        "your_columns": sorted(cols) if cols else None,
+                    }
+
                 html_response = _format_csv_report_html(result if isinstance(result, dict) else {})
 
             return Response({"html_response": _ensure_html(html_response)}, status=status.HTTP_200_OK)

@@ -144,7 +144,8 @@ export default function StrategicPlanning() {
     try {
       const formData = new FormData()
       formData.append("required_csv", file)
-      if (selectedCard) formData.append("analysis_type", selectedCard)
+      const analysisHint = selectedCard && selectedCard !== "swot" ? selectedCard : "auto"
+      formData.append("analysis_type", analysisHint)
 
       const response = await uploadCsv(formData)
       const aiMsg: ChatMessage = {
