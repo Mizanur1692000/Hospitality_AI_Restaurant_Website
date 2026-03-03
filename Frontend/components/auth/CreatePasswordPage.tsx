@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import Link from "next/link"
@@ -37,10 +38,10 @@ export default function CreatePasswordPage() {
     },
   })
 
-  const onSubmit = (data: CreatePasswordFormValues) => {
-    console.log(data)
+  const router = useRouter()
+  const onSubmit = () => {
     // Navigate to success page
-    window.location.href = "/auth/verification-success"
+    router.push("/auth/verification-success")
   }
 
   return (

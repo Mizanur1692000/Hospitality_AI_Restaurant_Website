@@ -294,7 +294,6 @@ Example: "Run comprehensive analysis. Total sales: $50,000. Labor cost: $15,000.
 };
 
 export default function KPIDashboard() {
-  const [dateRange, setDateRange] = useState("30");
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);

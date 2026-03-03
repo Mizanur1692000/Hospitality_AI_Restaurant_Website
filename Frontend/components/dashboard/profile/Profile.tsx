@@ -80,14 +80,14 @@ export default function Profile() {
     }
   };
 
-  const onContactSubmit = (_data: ContactFormValues) => {
+  const onContactSubmit = () => {
     setIsEditingContact(false);
     toast.success("Profile Updated", {
       description: "Your contact information has been saved.",
     });
   };
 
-  const onPasswordSubmit = (_data: PasswordFormValues) => {
+  const onPasswordSubmit = () => {
     setIsEditingPassword(false);
     passwordForm.reset();
     setShowNewPassword(false);
@@ -149,7 +149,7 @@ export default function Profile() {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {contactForm.watch("fullName")}
+                {contactForm.getValues("fullName")}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Restaurant Manager

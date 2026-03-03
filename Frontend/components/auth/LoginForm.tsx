@@ -49,7 +49,7 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
+  const onSubmit = () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);

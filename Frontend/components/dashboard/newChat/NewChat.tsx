@@ -38,12 +38,10 @@ import {
   ChefHat,
   Lightbulb,
   TrendingUp,
-  FileSpreadsheet,
   Send,
   Paperclip,
   User,
   BotIcon,
-  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -91,46 +89,6 @@ const mainCards = [
     route: "/dashboard/strategic-planning",
   },
 ];
-
-const quickActions = [
-  {
-    id: "sales-forecasting",
-    label: "Sales forecasting",
-    prompt:
-      "I'd be happy to help with sales forecasting! To provide accurate predictions, please share:\n\n• Historical sales data (last 6-12 months)\n• Current revenue figures\n• Seasonal patterns or trends\n• Any upcoming events or promotions\n• Your target time period for forecasting\n\nYou can upload a CSV file or paste the data directly.",
-  },
-  {
-    id: "menu-profitability",
-    label: "Menu profitability",
-    prompt:
-      "Great! Let's analyze your menu profitability. I'll need:\n\n• Menu item names and prices\n• Cost of ingredients for each dish\n• Sales volume per item\n• Food cost percentage targets\n• Labor costs associated with preparation\n\nPlease share this information or upload your menu data file.",
-  },
-  {
-    id: "prime-cost",
-    label: "Prime cost analysis",
-    prompt:
-      "I'll help you analyze your prime costs. Please provide:\n\n• Total food costs\n• Total beverage costs\n• Total labor costs (including wages, taxes, benefits)\n• Total sales/revenue\n• Time period for analysis\n\nThis will help me calculate your prime cost percentage and identify optimization opportunities.",
-  },
-  {
-    id: "waste-pattern",
-    label: "Waste pattern detection",
-    prompt:
-      "Let's identify waste patterns in your operation. I need:\n\n• Daily/weekly waste logs\n• Categories of waste (spoilage, prep waste, plate waste)\n• Inventory levels\n• Purchase records\n• Any existing tracking data\n\nShare your waste tracking data to get detailed insights and recommendations.",
-  },
-  {
-    id: "ingredient-cost",
-    label: "Ingredient cost breakdown",
-    prompt:
-      "I'll break down your ingredient costs. Please provide:\n\n• List of all ingredients used\n• Purchase prices per unit\n• Quantities used per recipe\n• Supplier information\n• Frequency of purchases\n\nYou can upload invoices or inventory spreadsheets for detailed analysis.",
-  },
-  {
-    id: "pricing-recommendations",
-    label: "Pricing recommendations",
-    prompt:
-      "Let me help optimize your pricing strategy. I need:\n\n• Current menu prices\n• Food and labor costs per item\n• Target profit margins\n• Competitor pricing (if available)\n• Sales data by menu item\n• Your market positioning strategy\n\nShare this information for data-driven pricing recommendations.",
-  },
-];
-
 const CHAT_API_URL =
   process.env.NEXT_PUBLIC_CHAT_API_URL ??
   `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000"}/chat/api/`;
@@ -331,7 +289,7 @@ export default function NewChat() {
         }
 
         setMessages((prev) => [...prev, { id: Date.now(), type: "ai", text: html_response }]);
-      } catch (err) {
+      } catch {
         setMessages((prev) => [
           ...prev,
           {
@@ -383,7 +341,7 @@ export default function NewChat() {
           ({ html_response } = await sendStrategicChatMessage(text));
         }
         setMessages((prev) => [...prev, { id: Date.now(), type: "ai", text: html_response }]);
-      } catch (err) {
+      } catch {
         setMessages((prev) => [
           ...prev,
           {
@@ -398,16 +356,6 @@ export default function NewChat() {
     },
     []
   );
-
-  const handleQuickAction = (prompt: string) => {
-    const userMessage: Message = {
-      id: Date.now(),
-      type: "user",
-      text: prompt,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    sendChat(prompt);
-  };
 
   const handleSendMessage = () => {
     const trimmed = inputValue.trim();
@@ -481,20 +429,6 @@ export default function NewChat() {
             })}
           </div>
 
-          {/* Quick Actions */}
-          {/* <div className="flex flex-wrap gap-3 justify-center mb-8">
-            {quickActions.map((action) => (
-              <Button
-                key={action.id}
-                onClick={() => handleQuickAction(action.prompt)}
-                variant="secondary"
-                className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-600 dark:hover:bg-gray-600 text-black dark:text-white border-0 rounded-full px-4 py-2 text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1.5" />
-                {action.label}
-              </Button>
-            ))}
-          </div> */}
 
           {/* Chat Messages */}
           {messages.length > 0 || isLoading ? (

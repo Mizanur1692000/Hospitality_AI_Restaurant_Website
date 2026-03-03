@@ -36,7 +36,7 @@ def _ensure_html(value) -> str:
         return "<div>No analysis returned.</div>"
     if "<" in text and ">" in text:
         return text
-    return f'<div><pre style="white-space:pre-wrap">{html.escape(text)}</pre></div>'
+    return f'<div style="font-family:inherit; white-space:pre-wrap">{html.escape(text)}</div>'
 
 
 def _dedupe_preserve_order(values: list) -> list:

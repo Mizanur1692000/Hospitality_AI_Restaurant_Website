@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -50,18 +49,9 @@ export default function Sidebar() {
   const { open, setOpen } = useSidebar()
   const router = useRouter()
   const pathname = usePathname()
-  const [selectedFeature, setSelectedFeature] = useState("KPI Analysis")
-
-  // Update selected feature based on current pathname
-  useEffect(() => {
-    const currentFeature = features.find(feature => feature.href === pathname)
-    if (currentFeature) {
-      setSelectedFeature(currentFeature.label)
-    }
-  }, [pathname])
+  const selectedFeature = features.find(feature => feature.href === pathname)?.label || "KPI Analysis"
 
   const handleFeatureClick = (feature: typeof features[0]) => {
-    setSelectedFeature(feature.label)
     router.push(feature.href)
     // Close sidebar on mobile after click
     if (window.innerWidth < 1024) {

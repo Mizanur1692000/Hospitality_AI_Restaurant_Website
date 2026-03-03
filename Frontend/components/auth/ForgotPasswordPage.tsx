@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useRouter } from "next/navigation"
 import * as z from "zod"
 import Link from "next/link"
 import { Mail } from "lucide-react"
@@ -23,8 +24,9 @@ export default function ForgotPasswordPage() {
     },
   })
 
-  const onSubmit = (_data: ForgotPasswordFormValues) => {
-    window.location.href = "/auth/verify-otp"
+  const router = useRouter()
+  const onSubmit = () => {
+    router.push("/auth/verify-otp")
   }
 
   return (

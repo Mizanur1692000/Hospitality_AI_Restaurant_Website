@@ -11,6 +11,6 @@ urlpatterns = [
     path("api/recipe/", include("apps.recipe_api.urls")),
     path("api/strategic/", include("apps.strategic_api.urls")),
     path("chat/", include("apps.chat_assistant.urls")),
-    path("dashboard/", include("apps.dashboard.urls")),
-    path("", include("apps.dashboard.urls")),
+    # path("dashboard/", include("apps.dashboard.urls")),
+    # path("", include("apps.dashboard.urls")),
 ]

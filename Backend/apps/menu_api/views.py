@@ -33,6 +33,15 @@ def _error_payload(*, code: str, message: str, details=None, trace_id: str | Non
 
 
 def _ensure_html(text_or_html: str) -> str:
+    """Return HTML suitable for injecting into responses.
+
+    If the input already contains HTML tags we assume it's ready to go;
+    otherwise we wrap the escaped text in a simple ``<div>`` using the
+    surrounding font (no ``<pre>``) and preserve whitespace.  The old
+    implementation used a ``<pre>`` element which forced a monospace
+    font, leading to responses that looked different from the normal
+    conversation text.
+    """
     if not isinstance(text_or_html, str):
         text_or_html = str(text_or_html)
     candidate = text_or_html.strip()
@@ -40,7 +49,8 @@ def _ensure_html(text_or_html: str) -> str:
         return "<div>No analysis returned.</div>"
     if "<" in candidate and ">" in candidate:
         return candidate
-    return f'<div><pre style="white-space:pre-wrap">{html.escape(candidate)}</pre></div>'
+    # plain text – use div with inherited font and keep line breaks
+    return f'<div style="font-family:inherit; white-space:pre-wrap">{html.escape(candidate)}</div>'
 
 
 def _snake_key(key: str) -> str:

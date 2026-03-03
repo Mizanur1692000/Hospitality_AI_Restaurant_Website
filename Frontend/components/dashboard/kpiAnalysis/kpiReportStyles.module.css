@@ -63,6 +63,11 @@
   );
 }
 
+/* enforce consistent font throughout AI responses */
+.kpiHtml :global(*) {
+  font-family: inherit !important;
+}
+
 /* KPI CSV report blocks (ported from backend KPI dashboard UI) */
 .kpiHtml :global(.kpi-grid) {
   display: grid;

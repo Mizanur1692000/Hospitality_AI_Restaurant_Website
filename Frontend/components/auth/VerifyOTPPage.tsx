@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -62,10 +63,10 @@ export default function VerifyOTPPage() {
     inputRefs.current[Math.min(pastedData.length, 5)]?.focus()
   }
 
-  const onSubmit = (data: OTPFormValues) => {
-    console.log(data)
+  const router = useRouter()
+  const onSubmit = () => {
     // Navigate to create new password
-    window.location.href = "/auth/create-password"
+    router.push("/auth/create-password")
   }
 
   const handleResendOTP = () => {
@@ -103,7 +104,7 @@ export default function VerifyOTPPage() {
               <FormField
                 control={form.control}
                 name="otp"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormControl>
                       <div className="space-y-2">

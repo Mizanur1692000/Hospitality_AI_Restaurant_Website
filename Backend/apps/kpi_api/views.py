@@ -338,7 +338,7 @@ def _ensure_html(text_or_html: str) -> str:
     if "<" in candidate and ">" in candidate:
         return candidate
 
-    return f"<div><pre style=\"white-space:pre-wrap\">{html.escape(candidate)}</pre></div>"
+    return f"<div style=\"font-family:inherit; white-space:pre-wrap\">{html.escape(candidate)}</div>"
 
 
 def _detect_domain_from_csv_bytes(raw_bytes: bytes) -> str:

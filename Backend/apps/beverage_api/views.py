@@ -32,6 +32,7 @@ def _error_payload(*, code: str, message: str, details=None, trace_id: str | Non
 
 
 def _ensure_html(text_or_html: str) -> str:
+    # keep behavior consistent with other apps; avoid monospace <pre>.
     if not isinstance(text_or_html, str):
         text_or_html = str(text_or_html)
     candidate = text_or_html.strip()
@@ -39,7 +40,7 @@ def _ensure_html(text_or_html: str) -> str:
         return "<div>No analysis returned.</div>"
     if "<" in candidate and ">" in candidate:
         return candidate
-    return f'<div><pre style="white-space:pre-wrap">{html.escape(candidate)}</pre></div>'
+    return f'<div style="font-family:inherit; white-space:pre-wrap">{html.escape(candidate)}</div>'
 
 
 def _snake_key(key: str) -> str:
